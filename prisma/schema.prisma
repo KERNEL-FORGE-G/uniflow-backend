@@ -83,4 +83,85 @@ model Teacher {
   @@map("teachers")
 }
 
+// ============================================================
+// (Dev A) - Structure académique
+// ============================================================
+
+model Faculty {
+  id          String   @id @default(uuid())
+  name        String
+  nameEn      String?
+  description String?
+
+  departments Department[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("faculties")
+}
+
+model Department {
+  id        String  @id @default(uuid())
+  name      String
+  nameEn    String?
+  facultyId String
+  faculty   Faculty @relation(fields: [facultyId], references: [id])
+
+  programs Program[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("departments")
+}
+
+model Program {
+  id           String     @id @default(uuid())
+  name         String
+  nameEn       String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  levels Level[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("programs")
+}
+
+model Level {
+  id        String  @id @default(uuid())
+  name      String // ex: "Licence 1", "Master 2"
+  nameEn    String?
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
+  specialties Specialty[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("levels")
+}
+
+model Specialty {
+  id      String  @id @default(uuid())
+  name    String
+  nameEn  String?
+  levelId String
+  level   Level   @relation(fields: [levelId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("specialties")
+}
+
 
