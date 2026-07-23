@@ -1,0 +1,17 @@
+# Dépendances
+node_modules
+
+# Build compilé
+dist
+
+# Variables d'environnement
+.env
+
+# Prisma généré
+/generated/prisma
+
+# Couverture de tests
+coverage
+
+# Logs
+*.log
