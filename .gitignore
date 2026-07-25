@@ -3,3 +3,13 @@ node_modules
 .env
 
 /generated/prisma
+
+# Build
+/dist
+
+# Outils IA / assistants de code (skills auto-générés)
+.agents/
+.claude/
+.windsurf/
+.cursor/
+skills-lock.json
