@@ -35,6 +35,7 @@ services:
       # Note : "postgres" ici est le nom du service ci-dessus, pas "localhost" —
       # à l'intérieur du réseau Docker, les conteneurs se joignent par nom de service.
       DATABASE_URL: postgresql://uniflow:uniflow_dev_password@postgres:5432/uniflow_dev
+      JWT_SECRET: change-moi-en-une-longue-chaine-aleatoire-et-secrete
     depends_on:
       postgres:
         condition: service_healthy
