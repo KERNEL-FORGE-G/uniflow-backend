@@ -1,11 +1,22 @@
+
+# Dépendances
 node_modules
-# Keep environment variables out of version control
+
+# Build compilé
+dist
+/dist
+
+# Variables d'environnement
 .env
 
+# Prisma généré
 /generated/prisma
 
-# Build
-/dist
+# Couverture de tests
+coverage
+
+# Logs
+*.log
 
 # Outils IA / assistants de code (skills auto-générés)
 .agents/

@@ -1,13 +1,271 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// UniFlow - Schéma de base de données
+// Backend + BD - KERNEL FORGE
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS - Rôles et statuts
+// ============================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  DIRECTION
+  SECRETARIAT
+  ENSEIGNANT
+  DELEGUE
+  ETUDIANT
+}
+
+enum StudentStatus {
+  ACTIVE
+  SUSPENDED
+  GRADUATED
+  WITHDRAWN
+  DEFERRED
+}
+
+// ============================================================
+// (Dev A) - Identité & Utilisateurs
+// ============================================================
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String
+  refreshTokenHash String?
+  role             UserRole
+  isActive         Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  student Student?
+  teacher Teacher?
+
+  @@map("users")
+}
+
+model Student {
+  id        String        @id @default(uuid())
+  userId    String        @unique
+  user      User          @relation(fields: [userId], references: [id])
+  firstName String
+  lastName  String
+  matricule String        @unique
+  status    StudentStatus @default(ACTIVE)
+
+  enrollments Enrollment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("students")
+}
+
+model Teacher {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  firstName String
+  lastName  String
+
+  ueAssignments TeacherUeAssignment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("teachers")
+}
+
+// ============================================================
+// (Dev A) - Structure académique
+// ============================================================
+
+model Faculty {
+  id          String   @id @default(uuid())
+  name        String
+  nameEn      String?
+  description String?
+
+  departments Department[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("faculties")
+}
+
+model Department {
+  id        String  @id @default(uuid())
+  name      String
+  nameEn    String?
+  facultyId String
+  faculty   Faculty @relation(fields: [facultyId], references: [id])
+
+  programs Program[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("departments")
+}
+
+model Program {
+  id           String     @id @default(uuid())
+  name         String
+  nameEn       String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  levels Level[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("programs")
+}
+
+model Level {
+  id        String  @id @default(uuid())
+  name      String
+  nameEn    String?
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
+  specialties   Specialty[]
+  teachingUnits TeachingUnit[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("levels")
+}
+
+model Specialty {
+  id      String  @id @default(uuid())
+  name    String
+  nameEn  String?
+  levelId String
+  level   Level   @relation(fields: [levelId], references: [id])
+
+  teachingUnits UeSpecialty[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("specialties")
+}
+
+// ============================================================
+// (Dev A) - Semestres, UE, Inscriptions
+// ============================================================
+
+enum UEType {
+  OBLIGATOIRE
+  OPTIONNELLE
+}
+
+enum EnrollmentStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+}
+
+model Semester {
+  id        String   @id @default(uuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+
+  teachingUnits TeachingUnit[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("semesters")
+}
+
+model TeachingUnit {
+  id      String @id @default(uuid())
+  code    String @unique
+  name    String
+  nameEn  String?
+  credits Int
+  hoursCM Int    @default(0)
+  hoursTD Int    @default(0)
+  hoursTP Int    @default(0)
+  type    UEType @default(OBLIGATOIRE)
+
+  levelId String
+  level   Level  @relation(fields: [levelId], references: [id])
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id])
+
+  specialties        UeSpecialty[]
+  enrollments        Enrollment[]
+  teacherAssignments TeacherUeAssignment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("teaching_units")
+}
+
+model UeSpecialty {
+  teachingUnitId String
+  teachingUnit   TeachingUnit @relation(fields: [teachingUnitId], references: [id])
+  specialtyId    String
+  specialty      Specialty    @relation(fields: [specialtyId], references: [id])
+
+  @@id([teachingUnitId, specialtyId])
+  @@map("ue_specialties")
+}
+
+model Enrollment {
+  id             String           @id @default(uuid())
+  studentId      String
+  student        Student          @relation(fields: [studentId], references: [id])
+  teachingUnitId String
+  teachingUnit   TeachingUnit     @relation(fields: [teachingUnitId], references: [id])
+  status         EnrollmentStatus @default(PENDING)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([studentId, teachingUnitId])
+  @@map("enrollments")
+}
+
+model TeacherUeAssignment {
+  id             String       @id @default(uuid())
+  teacherId      String
+  teacher        Teacher      @relation(fields: [teacherId], references: [id])
+  teachingUnitId String
+  teachingUnit   TeachingUnit @relation(fields: [teachingUnitId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([teacherId, teachingUnitId])
+  @@map("teacher_ue_assignments")
 }

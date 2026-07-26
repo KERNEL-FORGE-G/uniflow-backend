@@ -4,9 +4,7 @@
 # Fournit une base PostgreSQL isolée pour CE développeur uniquement (règle n°5
 # du document de répartition Backend+BD) : chacun a sa propre instance locale,
 # seul le schema.prisma et les migrations sont partagés via Git — jamais les données.
-
 version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -25,7 +23,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  
   api:
     build:
       context: .
@@ -41,7 +38,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
 volumes:
   uniflow_pgdata:
     # Volume nommé : les données persistent entre redémarrages du conteneur,
