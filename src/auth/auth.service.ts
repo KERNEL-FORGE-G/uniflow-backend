@@ -1,5 +1,3 @@
-
-
 import {
   Injectable,
   ConflictException,
@@ -70,10 +68,7 @@ export class AuthService {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
     }
 
-    const passwordValid = await bcrypt.compare(
-      dto.password,
-      user.passwordHash,
-    );
+    const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
 
     if (!passwordValid) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
@@ -113,11 +108,7 @@ export class AuthService {
     return this.buildAuthResponse(user.id, user.email, user.role);
   }
 
-  private async buildAuthResponse(
-    userId: string,
-    email: string,
-    role: string,
-  ) {
+  private async buildAuthResponse(userId: string, email: string, role: string) {
     const payload = { sub: userId, email, role };
 
     const accessToken = this.jwtService.sign(payload, {

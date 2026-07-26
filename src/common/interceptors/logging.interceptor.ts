@@ -1,9 +1,3 @@
-// src/common/interceptors/logging.interceptor.ts
-//
-// Log chaque requête entrante avec sa durée de traitement.
-// Utile dès maintenant pour déboguer, et deviendra la base du monitoring
-// mentionné au §9.3 (Audit & monitoring) une fois Sentry branché en semaine 4.
-
 import {
   Injectable,
   NestInterceptor,
@@ -14,12 +8,17 @@ import {
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
+interface RequestWithMethodUrl {
+  method: string;
+  url: string;
+}
+
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   private readonly logger = new Logger('HTTP');
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<RequestWithMethodUrl>();
     const { method, url } = request;
     const start = Date.now();
 
