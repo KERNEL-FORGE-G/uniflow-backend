@@ -37,6 +37,14 @@ async function main() {
     },
   });
 
+const level2 = await prisma.level.create({
+    data: {
+      name: "Licence 2",
+      programId: program.id,
+    },
+  });
+  console.log("Level 2 ID:", level2.id);
+
   console.log("✅ Données de test créées :");
   console.log("Faculty ID:", faculty.id);
   console.log("Department ID:", department.id);

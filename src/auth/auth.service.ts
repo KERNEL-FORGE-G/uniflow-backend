@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -38,12 +39,18 @@ export class AuthService {
     });
 
     if (dto.role === 'ETUDIANT') {
+      if (!dto.levelId) {
+        throw new BadRequestException('levelId est requis pour un étudiant');
+      }
+
       await this.prisma.student.create({
         data: {
           userId: user.id,
           firstName: dto.firstName,
           lastName: dto.lastName,
           matricule: await this.generateMatricule(),
+          levelId: dto.levelId,
+          specialtyId: dto.specialtyId,
         },
       });
     } else if (dto.role === 'ENSEIGNANT') {

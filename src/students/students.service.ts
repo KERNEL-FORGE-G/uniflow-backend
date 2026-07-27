@@ -38,6 +38,8 @@ export class StudentsService {
         lastName: dto.lastName,
         matricule: await this.generateMatricule(),
         status: dto.status ?? 'ACTIVE',
+        levelId: dto.levelId,
+        specialtyId: dto.specialtyId,
       },
       include: { user: { select: { email: true, role: true } } },
     });
