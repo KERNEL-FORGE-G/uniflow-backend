@@ -37,12 +37,12 @@ enum StudentStatus {
 // ============================================================
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  refreshTokenHash  String?
-  role         UserRole
-  isActive     Boolean  @default(true)
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String
+  refreshTokenHash String?
+  role             UserRole
+  isActive         Boolean  @default(true)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -55,20 +55,21 @@ model User {
 }
 
 model Student {
-  id           String        @id @default(uuid())
-  userId       String        @unique
-  user         User          @relation(fields: [userId], references: [id])
-  firstName    String
-  lastName     String
-  matricule    String        @unique
-  status       StudentStatus @default(ACTIVE)
+  id        String        @id @default(uuid())
+  userId    String        @unique
+  user      User          @relation(fields: [userId], references: [id])
+  firstName String
+  lastName  String
+  matricule String        @unique
+  status    StudentStatus @default(ACTIVE)
+
+  enrollments Enrollment[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@map("students")
-  enrollments Enrollment[]
 }
 
 model Teacher {
@@ -78,12 +79,13 @@ model Teacher {
   firstName String
   lastName  String
 
+  ueAssignments TeacherUeAssignment[]
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@map("teachers")
-  ueAssignments TeacherUeAssignment[]
 }
 
 // ============================================================
@@ -139,12 +141,12 @@ model Program {
 
 model Level {
   id        String  @id @default(uuid())
-  name      String // ex: "Licence 1", "Master 2"
+  name      String
   nameEn    String?
   programId String
   program   Program @relation(fields: [programId], references: [id])
 
-  specialties Specialty[]
+  specialties   Specialty[]
   teachingUnits TeachingUnit[]
 
   createdAt DateTime  @default(now())
@@ -161,12 +163,13 @@ model Specialty {
   levelId String
   level   Level   @relation(fields: [levelId], references: [id])
 
+  teachingUnits UeSpecialty[]
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@map("specialties")
-  teachingUnits UeSpecialty[]
 }
 
 // ============================================================
@@ -186,7 +189,7 @@ enum EnrollmentStatus {
 
 model Semester {
   id        String   @id @default(uuid())
-  name      String // ex: "Semestre 1 - 2026/2027"
+  name      String
   startDate DateTime
   endDate   DateTime
   isActive  Boolean  @default(true)
@@ -201,24 +204,24 @@ model Semester {
 }
 
 model TeachingUnit {
-  id         String   @id @default(uuid())
-  code       String   @unique // ex: "INFO301"
-  name       String
-  nameEn     String?
-  credits    Int
-  hoursCM    Int      @default(0)
-  hoursTD    Int      @default(0)
-  hoursTP    Int      @default(0)
-  type       UEType   @default(OBLIGATOIRE)
+  id      String @id @default(uuid())
+  code    String @unique
+  name    String
+  nameEn  String?
+  credits Int
+  hoursCM Int    @default(0)
+  hoursTD Int    @default(0)
+  hoursTP Int    @default(0)
+  type    UEType @default(OBLIGATOIRE)
 
-  levelId    String
-  level      Level    @relation(fields: [levelId], references: [id])
+  levelId String
+  level   Level  @relation(fields: [levelId], references: [id])
 
   semesterId String
   semester   Semester @relation(fields: [semesterId], references: [id])
 
-  specialties     UeSpecialty[]
-  enrollments     Enrollment[]
+  specialties        UeSpecialty[]
+  enrollments        Enrollment[]
   teacherAssignments TeacherUeAssignment[]
 
   createdAt DateTime  @default(now())
@@ -228,7 +231,6 @@ model TeachingUnit {
   @@map("teaching_units")
 }
 
-// Table de liaison N-N entre TeachingUnit et Specialty
 model UeSpecialty {
   teachingUnitId String
   teachingUnit   TeachingUnit @relation(fields: [teachingUnitId], references: [id])
@@ -255,7 +257,6 @@ model Enrollment {
   @@map("enrollments")
 }
 
-// Table de liaison N-N entre Teacher et TeachingUnit
 model TeacherUeAssignment {
   id             String       @id @default(uuid())
   teacherId      String
