@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { StudentStatus } from '@prisma/client';
 
 export class UpdateStudentDto {
@@ -13,4 +13,12 @@ export class UpdateStudentDto {
   @IsOptional()
   @IsEnum(StudentStatus)
   status?: StudentStatus;
+
+  @IsOptional()
+  @IsUUID()
+  levelId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  specialtyId?: string;
 }
