@@ -8,7 +8,12 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-const SYNCABLE_ENTITIES = ['student', 'teacher', 'teachingUnit', 'enrollment'] as const;
+const SYNCABLE_ENTITIES = [
+  'student',
+  'teacher',
+  'teachingUnit',
+  'enrollment',
+] as const;
 export type SyncableEntity = (typeof SYNCABLE_ENTITIES)[number];
 
 export class SyncOperationDto {

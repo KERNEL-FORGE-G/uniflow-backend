@@ -4,6 +4,6 @@ import { UeController } from './ue.controller';
 
 @Module({
   providers: [UeService],
-  controllers: [UeController]
+  controllers: [UeController],
 })
 export class UeModule {}
