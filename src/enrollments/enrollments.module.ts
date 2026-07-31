@@ -4,6 +4,6 @@ import { EnrollmentsController } from './enrollments.controller';
 
 @Module({
   providers: [EnrollmentsService],
-  controllers: [EnrollmentsController]
+  controllers: [EnrollmentsController],
 })
 export class EnrollmentsModule {}

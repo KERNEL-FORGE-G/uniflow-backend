@@ -8,6 +8,7 @@ import { StudentsModule } from './students/students.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { UeModule } from './ue/ue.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
+import { SyncModule } from './sync/sync.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
     TeachersModule,
     UeModule,
     EnrollmentsModule,
+    SyncModule,
   ],
   controllers: [AppController],
   providers: [AppService],
