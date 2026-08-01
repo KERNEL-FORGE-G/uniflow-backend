@@ -23,9 +23,13 @@ export class NotificationsService {
     // Tant que les clés FCM/SMS ne sont pas configurées, on journalise
     // l'intention d'envoi plutôt que d'échouer silencieusement.
     if (notification.channel === 'PUSH') {
-      await this.sendPush(notification.userId, notification.title, notification.message);
+      this.sendPush(
+        notification.userId,
+        notification.title,
+        notification.message,
+      );
     } else if (notification.channel === 'SMS') {
-      await this.sendSms(notification.userId, notification.message);
+      this.sendSms(notification.userId, notification.message);
     }
 
     return notification;
@@ -54,7 +58,11 @@ export class NotificationsService {
       where: { id },
     });
 
-    if (!notification || notification.deletedAt || notification.userId !== userId) {
+    if (
+      !notification ||
+      notification.deletedAt ||
+      notification.userId !== userId
+    ) {
       throw new NotFoundException('Notification introuvable');
     }
 
@@ -69,7 +77,11 @@ export class NotificationsService {
       where: { id },
     });
 
-    if (!notification || notification.deletedAt || notification.userId !== userId) {
+    if (
+      !notification ||
+      notification.deletedAt ||
+      notification.userId !== userId
+    ) {
       throw new NotFoundException('Notification introuvable');
     }
 
@@ -85,7 +97,7 @@ export class NotificationsService {
    * Une fois disponibles (variable FCM_SERVER_KEY en .env), remplacer
    * ce log par un appel réel au SDK firebase-admin.
    */
-  private async sendPush(userId: string, title: string, message: string) {
+  private sendPush(userId: string, title: string, message: string): void {
     this.logger.log(
       `[STUB PUSH] Destinataire=${userId} | Titre="${title}" | Message="${message}"`,
     );
@@ -96,7 +108,7 @@ export class NotificationsService {
    * Envoi SMS de secours via passerelle MTN/Orange ou Twilio (§14.4 du CDC).
    * ⚠️ STUB : aucun compte agrégateur configuré pour l'instant.
    */
-  private async sendSms(userId: string, message: string) {
+  private sendSms(userId: string, message: string): void {
     this.logger.log(`[STUB SMS] Destinataire=${userId} | Message="${message}"`);
     // TODO: intégrer la passerelle SMS une fois le compte agrégateur disponible
   }
