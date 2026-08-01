@@ -9,7 +9,7 @@ import { ClassroomType } from '@prisma/client';
 
 export class CreateClassroomDto {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsOptional()
   @IsString()
@@ -17,8 +17,8 @@ export class CreateClassroomDto {
 
   @IsInt()
   @Min(1) // une salle de capacité 0 n'a pas de sens
-  capacity: number;
+  capacity!: number;
 
   @IsEnum(ClassroomType)
-  type: ClassroomType;
+  type!: ClassroomType;
 }

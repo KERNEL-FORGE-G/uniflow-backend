@@ -11,6 +11,8 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { SyncModule } from './sync/sync.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ClassroomsModule } from './classrooms/classrooms.module';
+import { CoursesModule } from './courses/courses.module';
+import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { ClassroomsModule } from './classrooms/classrooms.module';
     SyncModule,
     NotificationsModule,
     ClassroomsModule,
+    CoursesModule,
+    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
