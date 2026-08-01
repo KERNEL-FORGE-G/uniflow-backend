@@ -87,10 +87,13 @@ model Teacher {
   lastName  String
 
   ueAssignments TeacherUeAssignment[]
+  courses Course[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+
+  
 
   @@map("teachers")
 }
@@ -232,12 +235,15 @@ model TeachingUnit {
   specialties        UeSpecialty[]
   enrollments        Enrollment[]
   teacherAssignments TeacherUeAssignment[]
+  courses Course[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+
   @@map("teaching_units")
+  
 }
 
 model UeSpecialty {
@@ -310,4 +316,80 @@ model Notification {
   deletedAt DateTime?
 
   @@map("notifications")
+}
+
+// ============================================================
+// (Dev B) - Planification : Salles, Cours, Emplois du temps
+// ============================================================
+
+enum ClassroomType {
+  AMPHITHEATRE
+  SALLE_TD
+  LABORATOIRE
+}
+
+enum CourseType {
+  CM
+  TD
+  TP
+}
+
+enum DayOfWeek {
+  LUNDI
+  MARDI
+  MERCREDI
+  JEUDI
+  VENDREDI
+  SAMEDI
+}
+
+model Classroom {
+  id       String        @id @default(uuid())
+  name     String        @unique
+  building String?
+  capacity Int
+  type     ClassroomType
+
+  courses Course[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("classrooms")
+}
+
+model Course {
+  id             String       @id @default(uuid())
+  teachingUnitId String
+  teachingUnit   TeachingUnit @relation(fields: [teachingUnitId], references: [id])
+  teacherId      String
+  teacher        Teacher      @relation(fields: [teacherId], references: [id])
+  classroomId    String
+  classroom      Classroom    @relation(fields: [classroomId], references: [id])
+  type           CourseType
+  groupLabel     String? // ex. "TD1", "TP-Groupe A" — pour les sous-groupes TD/TP
+
+  schedules Schedule[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("courses")
+}
+
+model Schedule {
+  id        String    @id @default(uuid())
+  courseId  String
+  course    Course    @relation(fields: [courseId], references: [id])
+  dayOfWeek DayOfWeek
+  startTime DateTime  @db.Time
+  endTime   DateTime  @db.Time
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("schedules")
 }
