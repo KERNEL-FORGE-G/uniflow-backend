@@ -52,6 +52,8 @@ model User {
   teacher Teacher?
 
   @@map("users")
+
+  notifications Notification[]
 }
 
 model Student {
@@ -275,4 +277,37 @@ model TeacherUeAssignment {
 
   @@unique([teacherId, teachingUnitId])
   @@map("teacher_ue_assignments")
+}
+
+// ============================================================
+// (Dev A) - Notifications
+// ============================================================
+
+enum NotificationType {
+  INFO
+  ALERT
+  ANNOUNCEMENT
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  SMS
+}
+
+model Notification {
+  id      String              @id @default(uuid())
+  userId  String
+  user    User                @relation(fields: [userId], references: [id])
+  title   String
+  message String
+  type    NotificationType    @default(INFO)
+  channel NotificationChannel @default(IN_APP)
+  isRead  Boolean             @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("notifications")
 }

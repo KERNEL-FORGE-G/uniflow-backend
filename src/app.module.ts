@@ -9,6 +9,7 @@ import { TeachersModule } from './teachers/teachers.module';
 import { UeModule } from './ue/ue.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
 import { SyncModule } from './sync/sync.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { SyncModule } from './sync/sync.module';
     UeModule,
     EnrollmentsModule,
     SyncModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
