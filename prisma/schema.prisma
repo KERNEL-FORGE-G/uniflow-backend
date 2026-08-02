@@ -50,17 +50,20 @@ model User {
   student Student?
   teacher Teacher?
 
+  hostedConferences        VideoConference[]
+  conferenceParticipations ConferenceParticipant[]
+
   @@map("users")
 }
 
 model Student {
-  id           String        @id @default(uuid())
-  userId       String        @unique
-  user         User          @relation(fields: [userId], references: [id])
-  firstName    String
-  lastName     String
-  matricule    String        @unique
-  status       StudentStatus @default(ACTIVE)
+  id        String        @id @default(uuid())
+  userId    String        @unique
+  user      User          @relation(fields: [userId], references: [id])
+  firstName String
+  lastName  String
+  matricule String        @unique
+  status    StudentStatus @default(ACTIVE)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -70,9 +73,9 @@ model Student {
 }
 
 model Teacher {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  id        String @id @default(uuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id])
   firstName String
   lastName  String
 
@@ -83,4 +86,57 @@ model Teacher {
   @@map("teachers")
 }
 
+// Visioconference
+enum ConferenceMode {
+  LAN
+  INTERNET
+}
 
+enum ConferenceStatus {
+  ACTIVE
+  ENDED
+}
+
+model VideoConference {
+  id     String @id @default(uuid()) // sert AUSSI de nom de room LiveKit et de "lien" applicatif stable
+  hostId String
+  host   User   @relation(fields: [hostId], references: [id])
+
+  // Optionnel : lien vers un Course. Le modèle Course n'existe pas encore
+  // (Dev B le construit cette semaine) — voir note de coordination plus bas.
+  courseId String?
+
+  apiKey             String // identifiant LiveKit généré pour CETTE réunion uniquement
+  apiSecretEncrypted String // secret LiveKit chiffré au repos (AES-256, §9.3 CDC)
+
+  mode   ConferenceMode   @default(LAN)
+  status ConferenceStatus @default(ACTIVE)
+
+  localUrl  String? // ex: ws://192.168.1.42:7880
+  publicUrl String? // ex: wss://xxxx.ngrok-free.app — rempli seulement quand le mode Internet est activé
+
+  maxParticipants Int? // dépend des perfs de la machine hôte, pas une contrainte serveur
+
+  participants ConferenceParticipant[]
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("video_conferences")
+}
+
+model ConferenceParticipant {
+  id           String          @id @default(uuid())
+  conferenceId String
+  conference   VideoConference @relation(fields: [conferenceId], references: [id])
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  @@map("conference_participants")
+}
