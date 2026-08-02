@@ -50,10 +50,7 @@ export class CoursesController {
 
   @Get('my')
   findMine(@Request() req: AuthenticatedRequest) {
-    // req.user vient de JwtStrategy.validate() -> { userId, email, role }
-    // Note : userId ici est l'id User, pas l'id Teacher — la jointure
-    // User -> Teacher devra être résolue si ce n'est pas déjà fait ailleurs.
-    return this.coursesService.findByTeacher(req.user.userId);
+    return this.coursesService.findMineByUserId(req.user.userId);
   }
 
   @Get(':id')
