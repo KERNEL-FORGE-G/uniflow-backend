@@ -64,6 +64,23 @@ export class CoursesService {
       include: { teachingUnit: true, classroom: true },
     });
   }
+  // Résout le Teacher correspondant à un userId (JWT), puis retourne ses cours.
+  // Nécessaire car req.user.userId (issu du token) est l'id User, alors que
+  // Course.teacherId référence l'id Teacher (voir §8.2 du CDC) — ce sont deux
+  // identifiants différents liés par une relation 1—1.
+  async findMineByUserId(userId: string) {
+    const teacher = await this.prisma.teacher.findUnique({
+      where: { userId },
+    });
+
+    if (!teacher) {
+      throw new NotFoundException(
+        'Aucun profil enseignant associé à cet utilisateur',
+      );
+    }
+
+    return this.findByTeacher(teacher.id);
+  }
 
   async findOne(id: string) {
     const course = await this.prisma.course.findFirst({
