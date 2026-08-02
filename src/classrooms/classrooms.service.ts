@@ -59,6 +59,9 @@ export class ClassroomsService {
   async findAvailable(dayOfWeek: string, startTime: Date, endTime: Date) {
     // TODO : implémenter une fois le modèle Schedule branché —
     // exclure les salles ayant un Schedule qui chevauche ce créneau ce jour-là.
+    void dayOfWeek;
+    void startTime;
+    void endTime;
     return this.prisma.classroom.findMany({ where: { deletedAt: null } });
   }
 }

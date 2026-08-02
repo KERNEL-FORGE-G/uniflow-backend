@@ -22,6 +22,15 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { Request as ExpressRequest } from 'express';
+
+interface AuthenticatedRequest extends ExpressRequest {
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
+}
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('courses')
@@ -40,7 +49,7 @@ export class CoursesController {
   }
 
   @Get('my')
-  findMine(@Request() req) {
+  findMine(@Request() req: AuthenticatedRequest) {
     // req.user vient de JwtStrategy.validate() -> { userId, email, role }
     // Note : userId ici est l'id User, pas l'id Teacher — la jointure
     // User -> Teacher devra être résolue si ce n'est pas déjà fait ailleurs.

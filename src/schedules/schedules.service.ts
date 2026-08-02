@@ -119,7 +119,9 @@ export class SchedulesService {
     return this.prisma.schedule.findMany({
       where: { deletedAt: null },
       include: {
-        course: { include: { teachingUnit: true, classroom: true, teacher: true } },
+        course: {
+          include: { teachingUnit: true, classroom: true, teacher: true },
+        },
       },
     });
   }
@@ -141,7 +143,9 @@ export class SchedulesService {
     const startTime = dto.startTime
       ? this.toTimeDate(dto.startTime)
       : existing.startTime;
-    const endTime = dto.endTime ? this.toTimeDate(dto.endTime) : existing.endTime;
+    const endTime = dto.endTime
+      ? this.toTimeDate(dto.endTime)
+      : existing.endTime;
 
     const conflicts = await this.findConflicts(
       dayOfWeek,
