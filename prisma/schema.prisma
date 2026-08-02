@@ -71,6 +71,7 @@ model Student {
   specialty   Specialty? @relation(fields: [specialtyId], references: [id])
 
   enrollments Enrollment[]
+  attendanceRecords AttendanceRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -371,6 +372,7 @@ model Course {
   groupLabel     String? // ex. "TD1", "TP-Groupe A" — pour les sous-groupes TD/TP
 
   schedules Schedule[]
+  attendanceSessions AttendanceSession[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -392,4 +394,48 @@ model Schedule {
   deletedAt DateTime?
 
   @@map("schedules")
+}
+
+// ============================================================
+// (Dev A) - Présences
+// ============================================================
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+model AttendanceSession {
+  id       String   @id @default(uuid())
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id])
+  date     DateTime
+  qrToken  String   @unique @default(uuid())
+
+  records AttendanceRecord[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("attendance_sessions")
+}
+
+model AttendanceRecord {
+  id        String            @id @default(uuid())
+  sessionId String
+  session   AttendanceSession @relation(fields: [sessionId], references: [id])
+  studentId String
+  student   Student           @relation(fields: [studentId], references: [id])
+  status    AttendanceStatus  @default(ABSENT)
+  markedAt  DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([sessionId, studentId])
+  @@map("attendance_records")
 }
