@@ -13,6 +13,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ClassroomsModule } from './classrooms/classrooms.module';
 import { CoursesModule } from './courses/courses.module';
 import { SchedulesModule } from './schedules/schedules.module';
+import { AttendanceModule } from './attendance/attendance.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { SchedulesModule } from './schedules/schedules.module';
     ClassroomsModule,
     CoursesModule,
     SchedulesModule,
+    AttendanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
