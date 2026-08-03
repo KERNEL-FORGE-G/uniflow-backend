@@ -37,11 +37,12 @@ enum StudentStatus {
 // ============================================================
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  role         UserRole
-  isActive     Boolean  @default(true)
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String
+  refreshTokenHash String?
+  role             UserRole
+  isActive         Boolean  @default(true)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -50,8 +51,9 @@ model User {
   student Student?
   teacher Teacher?
 
-  hostedConferences        VideoConference[]
-  conferenceParticipations ConferenceParticipant[]
+  notifications             Notification[]
+  hostedConferences         VideoConference[]
+  conferenceParticipations  ConferenceParticipant[]
 
   @@map("users")
 }
@@ -64,6 +66,14 @@ model Student {
   lastName  String
   matricule String        @unique
   status    StudentStatus @default(ACTIVE)
+
+  levelId     String
+  level       Level      @relation(fields: [levelId], references: [id])
+  specialtyId String?
+  specialty   Specialty? @relation(fields: [specialtyId], references: [id])
+
+  enrollments       Enrollment[]
+  attendanceRecords AttendanceRecord[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -79,6 +89,9 @@ model Teacher {
   firstName String
   lastName  String
 
+  ueAssignments TeacherUeAssignment[]
+  courses       Course[]
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -86,7 +99,350 @@ model Teacher {
   @@map("teachers")
 }
 
-// Visioconference
+// ============================================================
+// (Dev A) - Structure académique
+// ============================================================
+
+model Faculty {
+  id          String   @id @default(uuid())
+  name        String
+  nameEn      String?
+  description String?
+
+  departments Department[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("faculties")
+}
+
+model Department {
+  id        String  @id @default(uuid())
+  name      String
+  nameEn    String?
+  facultyId String
+  faculty   Faculty @relation(fields: [facultyId], references: [id])
+
+  programs Program[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("departments")
+}
+
+model Program {
+  id           String     @id @default(uuid())
+  name         String
+  nameEn       String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  levels Level[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("programs")
+}
+
+model Level {
+  id        String  @id @default(uuid())
+  name      String
+  nameEn    String?
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
+  specialties   Specialty[]
+  teachingUnits TeachingUnit[]
+  students      Student[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("levels")
+}
+
+model Specialty {
+  id      String  @id @default(uuid())
+  name    String
+  nameEn  String?
+  levelId String
+  level   Level   @relation(fields: [levelId], references: [id])
+
+  teachingUnits UeSpecialty[]
+  students      Student[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("specialties")
+}
+
+// ============================================================
+// (Dev A) - Semestres, UE, Inscriptions
+// ============================================================
+
+enum UEType {
+  OBLIGATOIRE
+  OPTIONNELLE
+}
+
+enum EnrollmentStatus {
+  PENDING
+  VALIDATED
+  REJECTED
+}
+
+model Semester {
+  id        String   @id @default(uuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+
+  teachingUnits TeachingUnit[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("semesters")
+}
+
+model TeachingUnit {
+  id      String  @id @default(uuid())
+  code    String  @unique
+  name    String
+  nameEn  String?
+  credits Int
+  hoursCM Int     @default(0)
+  hoursTD Int     @default(0)
+  hoursTP Int     @default(0)
+  type    UEType  @default(OBLIGATOIRE)
+
+  levelId String
+  level   Level  @relation(fields: [levelId], references: [id])
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id])
+
+  specialties        UeSpecialty[]
+  enrollments        Enrollment[]
+  teacherAssignments TeacherUeAssignment[]
+  courses            Course[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("teaching_units")
+}
+
+model UeSpecialty {
+  teachingUnitId String
+  teachingUnit   TeachingUnit @relation(fields: [teachingUnitId], references: [id])
+  specialtyId    String
+  specialty      Specialty    @relation(fields: [specialtyId], references: [id])
+
+  @@id([teachingUnitId, specialtyId])
+  @@map("ue_specialties")
+}
+
+model Enrollment {
+  id             String           @id @default(uuid())
+  studentId      String
+  student        Student          @relation(fields: [studentId], references: [id])
+  teachingUnitId String
+  teachingUnit   TeachingUnit     @relation(fields: [teachingUnitId], references: [id])
+  status         EnrollmentStatus @default(PENDING)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([studentId, teachingUnitId])
+  @@map("enrollments")
+}
+
+model TeacherUeAssignment {
+  id             String       @id @default(uuid())
+  teacherId      String
+  teacher        Teacher      @relation(fields: [teacherId], references: [id])
+  teachingUnitId String
+  teachingUnit   TeachingUnit @relation(fields: [teachingUnitId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([teacherId, teachingUnitId])
+  @@map("teacher_ue_assignments")
+}
+
+// ============================================================
+// (Dev A) - Notifications
+// ============================================================
+
+enum NotificationType {
+  INFO
+  ALERT
+  ANNOUNCEMENT
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  SMS
+}
+
+model Notification {
+  id      String              @id @default(uuid())
+  userId  String
+  user    User                @relation(fields: [userId], references: [id])
+  title   String
+  message String
+  type    NotificationType    @default(INFO)
+  channel NotificationChannel @default(IN_APP)
+  isRead  Boolean             @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("notifications")
+}
+
+// ============================================================
+// (Dev B) - Planification : Salles, Cours, Emplois du temps
+// ============================================================
+
+enum ClassroomType {
+  AMPHITHEATRE
+  SALLE_TD
+  LABORATOIRE
+}
+
+enum CourseType {
+  CM
+  TD
+  TP
+}
+
+enum DayOfWeek {
+  LUNDI
+  MARDI
+  MERCREDI
+  JEUDI
+  VENDREDI
+  SAMEDI
+}
+
+model Classroom {
+  id       String        @id @default(uuid())
+  name     String        @unique
+  building String?
+  capacity Int
+  type     ClassroomType
+
+  courses Course[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("classrooms")
+}
+
+model Course {
+  id             String       @id @default(uuid())
+  teachingUnitId String
+  teachingUnit   TeachingUnit @relation(fields: [teachingUnitId], references: [id])
+  teacherId      String
+  teacher        Teacher      @relation(fields: [teacherId], references: [id])
+  classroomId    String
+  classroom      Classroom    @relation(fields: [classroomId], references: [id])
+  type           CourseType
+  groupLabel     String?
+
+  schedules          Schedule[]
+  attendanceSessions AttendanceSession[]
+  videoConferences   VideoConference[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("courses")
+}
+
+model Schedule {
+  id        String    @id @default(uuid())
+  courseId  String
+  course    Course    @relation(fields: [courseId], references: [id])
+  dayOfWeek DayOfWeek
+  startTime DateTime  @db.Time
+  endTime   DateTime  @db.Time
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("schedules")
+}
+
+// ============================================================
+// (Dev A) - Présences
+// ============================================================
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+model AttendanceSession {
+  id       String   @id @default(uuid())
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id])
+  date     DateTime
+  qrToken  String   @unique @default(uuid())
+
+  records AttendanceRecord[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("attendance_sessions")
+}
+
+model AttendanceRecord {
+  id        String            @id @default(uuid())
+  sessionId String
+  session   AttendanceSession @relation(fields: [sessionId], references: [id])
+  studentId String
+  student   Student           @relation(fields: [studentId], references: [id])
+  status    AttendanceStatus  @default(ABSENT)
+  markedAt  DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([sessionId, studentId])
+  @@map("attendance_records")
+}
+
+// ============================================================
+// (Dev C) - Visioconférence
+// ============================================================
+
 enum ConferenceMode {
   LAN
   INTERNET
@@ -98,24 +454,23 @@ enum ConferenceStatus {
 }
 
 model VideoConference {
-  id     String @id @default(uuid()) // sert AUSSI de nom de room LiveKit et de "lien" applicatif stable
+  id     String @id @default(uuid())
   hostId String
   host   User   @relation(fields: [hostId], references: [id])
 
-  // Optionnel : lien vers un Course. Le modèle Course n'existe pas encore
-  // (Dev B le construit cette semaine) — voir note de coordination plus bas.
   courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
 
-  apiKey             String // identifiant LiveKit généré pour CETTE réunion uniquement
-  apiSecretEncrypted String // secret LiveKit chiffré au repos (AES-256, §9.3 CDC)
+  apiKey             String
+  apiSecretEncrypted String
 
   mode   ConferenceMode   @default(LAN)
   status ConferenceStatus @default(ACTIVE)
 
-  localUrl  String? // ex: ws://192.168.1.42:7880
-  publicUrl String? // ex: wss://xxxx.ngrok-free.app — rempli seulement quand le mode Internet est activé
+  localUrl  String?
+  publicUrl String?
 
-  maxParticipants Int? // dépend des perfs de la machine hôte, pas une contrainte serveur
+  maxParticipants Int?
 
   participants ConferenceParticipant[]
 
