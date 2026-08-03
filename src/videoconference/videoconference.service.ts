@@ -29,7 +29,13 @@ export class VideoconferenceService {
       },
     });
 
-    const hostToken = await this.mintToken(conference.id, apiKey, apiSecret, hostId, true);
+    const hostToken = await this.mintToken(
+      conference.id,
+      apiKey,
+      apiSecret,
+      hostId,
+      true,
+    );
 
     // apiKey/apiSecret ne sont renvoyés en clair QUE cette fois-ci, au créateur,
     // pour qu'il configure son livekit-server local. Ils ne ressortiront plus jamais.
@@ -47,14 +53,24 @@ export class VideoconferenceService {
     });
     if (!conference) throw new NotFoundException('Réunion introuvable');
     if (conference.status === 'ENDED') {
-      throw new BadRequestException('Cette réunion est terminée, le lien a expiré');
+      throw new BadRequestException(
+        'Cette réunion est terminée, le lien a expiré',
+      );
     }
     if (!conference.localUrl && !conference.publicUrl) {
-      throw new BadRequestException("La réunion n'est pas encore prête côté hôte");
+      throw new BadRequestException(
+        "La réunion n'est pas encore prête côté hôte",
+      );
     }
 
     const apiSecret = decrypt(conference.apiSecretEncrypted);
-    const token = await this.mintToken(conference.id, conference.apiKey, apiSecret, userId, false);
+    const token = await this.mintToken(
+      conference.id,
+      conference.apiKey,
+      apiSecret,
+      userId,
+      false,
+    );
 
     await this.prisma.conferenceParticipant.create({
       data: { conferenceId: conference.id, userId },
@@ -78,7 +94,11 @@ export class VideoconferenceService {
     });
   }
 
-  async enableInternetMode(conferenceId: string, hostId: string, publicUrl: string) {
+  async enableInternetMode(
+    conferenceId: string,
+    hostId: string,
+    publicUrl: string,
+  ) {
     const conference = await this.getOwnedConference(conferenceId, hostId);
     // localUrl n'est pas effacée : les participants déjà connectés en LAN
     // restent sur le même serveur, rien ne change pour eux.

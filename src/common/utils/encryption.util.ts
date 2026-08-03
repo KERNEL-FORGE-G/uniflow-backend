@@ -16,14 +16,25 @@ function getKey(): Buffer {
 export function encrypt(plainText: string): string {
   const iv = randomBytes(12);
   const cipher = createCipheriv(ALGORITHM, getKey(), iv);
-  const encrypted = Buffer.concat([cipher.update(plainText, 'utf8'), cipher.final()]);
+  const encrypted = Buffer.concat([
+    cipher.update(plainText, 'utf8'),
+    cipher.final(),
+  ]);
   const authTag = cipher.getAuthTag();
-  return [iv.toString('hex'), authTag.toString('hex'), encrypted.toString('hex')].join(':');
+  return [
+    iv.toString('hex'),
+    authTag.toString('hex'),
+    encrypted.toString('hex'),
+  ].join(':');
 }
 
 export function decrypt(payload: string): string {
   const [ivHex, authTagHex, dataHex] = payload.split(':');
-  const decipher = createDecipheriv(ALGORITHM, getKey(), Buffer.from(ivHex, 'hex'));
+  const decipher = createDecipheriv(
+    ALGORITHM,
+    getKey(),
+    Buffer.from(ivHex, 'hex'),
+  );
   decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
   const decrypted = Buffer.concat([
     decipher.update(Buffer.from(dataHex, 'hex')),
