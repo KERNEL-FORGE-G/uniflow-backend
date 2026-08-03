@@ -100,6 +100,26 @@ export class VideoconferenceService {
     });
   }
 
+  async handleWebhook(body: any) {
+    if (body?.event === 'room_finished' && body?.room?.name) {
+      const conferenceId = body.room.name;
+      const conference = await this.prisma.videoConference.findUnique({
+        where: { id: conferenceId },
+      });
+      if (conference && conference.status === 'ACTIVE') {
+        await this.prisma.conferenceParticipant.updateMany({
+          where: { conferenceId: conference.id, leftAt: null },
+          data: { leftAt: new Date() },
+        });
+        return this.prisma.videoConference.update({
+          where: { id: conference.id },
+          data: { status: 'ENDED', endedAt: new Date() },
+        });
+      }
+    }
+    return { status: 'ignored' };
+  }
+
   private async getOwnedConference(conferenceId: string, hostId: string) {
     const conference = await this.prisma.videoConference.findUnique({
       where: { id: conferenceId },
