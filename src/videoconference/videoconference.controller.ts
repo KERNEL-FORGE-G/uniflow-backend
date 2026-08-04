@@ -16,6 +16,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { VideoconferenceService } from './videoconference.service';
+import type { LiveKitWebhookPayload } from './videoconference.service';
 import { CreateConferenceDto } from './dto/create-conference.dto';
 import { SetLocalUrlDto } from './dto/set-local-url.dto';
 import { UpdateNetworkDto } from './dto/update-network.dto';
@@ -79,7 +80,7 @@ export class VideoconferenceController {
   @Post('webhook')
   @Public()
   @HttpCode(HttpStatus.OK)
-  handleWebhook(@Body() body: Record<string, unknown>) {
+  handleWebhook(@Body() body: LiveKitWebhookPayload) {
     return this.service.handleWebhook(body);
   }
 }

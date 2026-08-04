@@ -10,6 +10,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { decrypt, encrypt } from '../common/utils/encryption.util';
 import { generateLiveKitCredentials } from '../common/utils/livekit-credentials.util';
 
+export interface LiveKitWebhookPayload {
+  event: string;
+  room?: {
+    name: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
 @Injectable()
 export class VideoconferenceService {
   constructor(private readonly prisma: PrismaService) {}
@@ -120,8 +129,8 @@ export class VideoconferenceService {
     });
   }
 
-  async handleWebhook(body: any) {
-    if (body?.event === 'room_finished' && body?.room?.name) {
+  async handleWebhook(body: LiveKitWebhookPayload) {
+    if (body.event === 'room_finished' && body.room?.name) {
       const conferenceId = body.room.name;
       const conference = await this.prisma.videoConference.findUnique({
         where: { id: conferenceId },
