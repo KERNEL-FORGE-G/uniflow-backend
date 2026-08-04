@@ -4,7 +4,8 @@ import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 const ALGORITHM = 'aes-256-gcm';
 
 function getKey(): Buffer {
-  const hex = process.env.ENCRYPTION_KEY;
+  const rawKey = process.env.ENCRYPTION_KEY;
+  const hex = rawKey ? rawKey.trim() : '';
   if (!hex || hex.length !== 64) {
     throw new Error(
       'ENCRYPTION_KEY doit être une chaîne hex de 64 caractères (32 octets) dans .env',

@@ -44,7 +44,13 @@ Ce fichier trace les demandes reçues qui ne sont pas dans le périmètre imméd
 
 3\. \*\*Dès le prochain module de fichiers (notifications/annonces, P1)\*\* : implémenter la limite de taille d'upload + logique de routage Supabase Storage (< 1 Mo) vs Cloudinary (≥ 1 Mo, à confirmer).
 
-
-
 \---
+## Suggestion en attente — préfixe /api/v1 (proposé par Dev C, 03/08/2026)
 
+Dev C a proposé `app.setGlobalPrefix('api/v1')` dans main.ts, cohérent avec la convention 
+du CDC (§10.1 : URL de base prod `https://api.uniflow.edu/api/v1`). 
+
+**Non appliqué pour l'instant** : ce changement casserait toutes les routes actuelles utilisées 
+par Mobile/Desktop en développement. À planifier en équipe (Chef de projet + tous les devs) 
+avant de l'introduire, idéalement en fin de sprint ou lors d'une bascule coordonnée où tout 
+le monde met à jour ses appels API en même temps.

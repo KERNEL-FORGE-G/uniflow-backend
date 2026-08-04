@@ -3,14 +3,17 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { VideoconferenceService } from './videoconference.service';
 import { CreateConferenceDto } from './dto/create-conference.dto';
@@ -24,7 +27,7 @@ interface AuthenticatedUser {
 }
 
 @Controller('conferences')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class VideoconferenceController {
   constructor(private readonly service: VideoconferenceService) {}
 
@@ -32,9 +35,13 @@ export class VideoconferenceController {
   @Roles('ENSEIGNANT', 'ADMIN', 'SUPER_ADMIN')
   create(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: CreateConferenceDto,
+    @Body() dto?: CreateConferenceDto,
   ) {
-    return this.service.create(user.userId, dto.courseId, dto.maxParticipants);
+    return this.service.create(
+      user.userId,
+      dto?.courseId,
+      dto?.maxParticipants,
+    );
   }
 
   @Get(':id/join')
@@ -63,8 +70,16 @@ export class VideoconferenceController {
   }
 
   @Post(':id/end')
+  @HttpCode(HttpStatus.OK)
   @Roles('ENSEIGNANT', 'ADMIN', 'SUPER_ADMIN')
   end(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.service.end(id, user.userId);
+  }
+
+  @Post('webhook')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  handleWebhook(@Body() body: Record<string, unknown>) {
+    return this.service.handleWebhook(body);
   }
 }
