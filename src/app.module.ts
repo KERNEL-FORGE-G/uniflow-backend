@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -17,6 +17,8 @@ import { CoursesModule } from './courses/courses.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { VideoconferenceModule } from './videoconference/videoconference.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 @Module({
   imports: [
@@ -53,6 +55,7 @@ import { VideoconferenceModule } from './videoconference/videoconference.module'
     SchedulesModule,
     AttendanceModule,
     VideoconferenceModule,
+    AuditLogsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -60,6 +63,10 @@ import { VideoconferenceModule } from './videoconference/videoconference.module'
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
   ],
 })
