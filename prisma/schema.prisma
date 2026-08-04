@@ -51,9 +51,11 @@ model User {
   student Student?
   teacher Teacher?
 
-  @@map("users")
+  notifications             Notification[]
+  hostedConferences         VideoConference[]
+  conferenceParticipations  ConferenceParticipant[]
 
-  notifications Notification[]
+  @@map("users")
 }
 
 model Student {
@@ -70,7 +72,7 @@ model Student {
   specialtyId String?
   specialty   Specialty? @relation(fields: [specialtyId], references: [id])
 
-  enrollments Enrollment[]
+  enrollments       Enrollment[]
   attendanceRecords AttendanceRecord[]
 
   createdAt DateTime  @default(now())
@@ -81,20 +83,18 @@ model Student {
 }
 
 model Teacher {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  id        String @id @default(uuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id])
   firstName String
   lastName  String
 
   ueAssignments TeacherUeAssignment[]
-  courses Course[]
+  courses       Course[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
-
-  
 
   @@map("teachers")
 }
@@ -159,7 +159,7 @@ model Level {
 
   specialties   Specialty[]
   teachingUnits TeachingUnit[]
-  students Student[]
+  students      Student[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -176,7 +176,7 @@ model Specialty {
   level   Level   @relation(fields: [levelId], references: [id])
 
   teachingUnits UeSpecialty[]
-  students Student[]
+  students      Student[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -217,15 +217,15 @@ model Semester {
 }
 
 model TeachingUnit {
-  id      String @id @default(uuid())
-  code    String @unique
+  id      String  @id @default(uuid())
+  code    String  @unique
   name    String
   nameEn  String?
   credits Int
-  hoursCM Int    @default(0)
-  hoursTD Int    @default(0)
-  hoursTP Int    @default(0)
-  type    UEType @default(OBLIGATOIRE)
+  hoursCM Int     @default(0)
+  hoursTD Int     @default(0)
+  hoursTP Int     @default(0)
+  type    UEType  @default(OBLIGATOIRE)
 
   levelId String
   level   Level  @relation(fields: [levelId], references: [id])
@@ -236,15 +236,13 @@ model TeachingUnit {
   specialties        UeSpecialty[]
   enrollments        Enrollment[]
   teacherAssignments TeacherUeAssignment[]
-  courses Course[]
+  courses            Course[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-
   @@map("teaching_units")
-  
 }
 
 model UeSpecialty {
@@ -369,10 +367,11 @@ model Course {
   classroomId    String
   classroom      Classroom    @relation(fields: [classroomId], references: [id])
   type           CourseType
-  groupLabel     String? // ex. "TD1", "TP-Groupe A" — pour les sous-groupes TD/TP
+  groupLabel     String?
 
-  schedules Schedule[]
+  schedules          Schedule[]
   attendanceSessions AttendanceSession[]
+  videoConferences   VideoConference[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -438,4 +437,61 @@ model AttendanceRecord {
 
   @@unique([sessionId, studentId])
   @@map("attendance_records")
+}
+
+// ============================================================
+// (Dev C) - Visioconférence
+// ============================================================
+
+enum ConferenceMode {
+  LAN
+  INTERNET
+}
+
+enum ConferenceStatus {
+  ACTIVE
+  ENDED
+}
+
+model VideoConference {
+  id     String @id @default(uuid())
+  hostId String
+  host   User   @relation(fields: [hostId], references: [id])
+
+  courseId String?
+  course   Course? @relation(fields: [courseId], references: [id])
+
+  apiKey             String
+  apiSecretEncrypted String
+
+  mode   ConferenceMode   @default(LAN)
+  status ConferenceStatus @default(ACTIVE)
+
+  localUrl  String?
+  publicUrl String?
+
+  maxParticipants Int?
+
+  participants ConferenceParticipant[]
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("video_conferences")
+}
+
+model ConferenceParticipant {
+  id           String          @id @default(uuid())
+  conferenceId String
+  conference   VideoConference @relation(fields: [conferenceId], references: [id])
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  @@map("conference_participants")
 }

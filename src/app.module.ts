@@ -14,6 +14,7 @@ import { ClassroomsModule } from './classrooms/classrooms.module';
 import { CoursesModule } from './courses/courses.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { AttendanceModule } from './attendance/attendance.module';
+import { VideoconferenceModule } from './videoconference/videoconference.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AttendanceModule } from './attendance/attendance.module';
     CoursesModule,
     SchedulesModule,
     AttendanceModule,
+    VideoconferenceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
