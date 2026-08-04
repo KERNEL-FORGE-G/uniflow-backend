@@ -30,11 +30,14 @@ export class AuditLogsService {
           ipAddress: dto.ipAddress,
           userAgent: dto.userAgent,
           statusCode: dto.statusCode,
-          details: dto.details ?? Prisma.DbNull,
+          details:
+            dto.details !== undefined
+              ? (dto.details as Prisma.InputJsonObject)
+              : Prisma.JsonNull,
         },
       });
     } catch (error) {
-      // Do not let audit logging failures crash the primary HTTP response loop
+      // Log error without crashing main HTTP cycle
       console.error('Audit logging error:', error);
     }
   }
