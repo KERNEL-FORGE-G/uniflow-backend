@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: uniflow-api
+    name: uniflow-backend
     runtime: node
     buildCommand: npm install && npm run build
-    startCommand: npm run start
+    startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
