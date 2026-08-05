@@ -495,3 +495,24 @@ model ConferenceParticipant {
 
   @@map("conference_participants")
 }
+
+// ============================================================
+// (Dev D) - Sécurité & Traçabilité (Audit Logs - §9.4 CDC)
+// ============================================================
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  userId     String?
+  userRole   UserRole?
+  action     String
+  resource   String
+  resourceId String?
+  ipAddress  String?
+  userAgent  String?
+  statusCode Int?
+  details    Json?
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
