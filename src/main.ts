@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -36,6 +37,28 @@ async function bootstrap() {
     origin: allowedOrigins,
     credentials: true,
   });
+
+  // Documentation API interactive (§10.1 du CDC)
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('UniFlow API')
+    .setDescription(
+      'API REST du backend UniFlow — plateforme universitaire intelligente, modulaire et Offline First.',
+    )
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Entrer le token JWT obtenu via /auth/login',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .build();
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, swaggerDocument);
 
   await app.listen(process.env.PORT ?? 3000);
 }
