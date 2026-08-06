@@ -516,3 +516,27 @@ model AuditLog {
 
   @@map("audit_logs")
 }
+
+enum EntityType {
+  STUDENT
+  TEACHER
+  COURSE
+  UE
+  CONFERENCE
+}
+
+model Attachment {
+  id        String     @id @default(uuid())
+  url       String
+  publicId  String
+  filename  String
+  mimeType  String
+  size      Int
+  
+  entityType EntityType
+  entityId   String
+  
+  createdAt DateTime   @default(now())
+
+  @@map("attachments")
+}
