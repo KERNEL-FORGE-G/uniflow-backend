@@ -39,9 +39,7 @@ export class AuthService {
     });
 
     if (dto.role === 'ETUDIANT') {
-      if (!dto.levelId) {
-        throw new BadRequestException('levelId est requis pour un étudiant');
-      }
+      const levelId = dto.levelId ?? (await this.findOrCreateDefaultLevel());
 
       await this.prisma.student.create({
         data: {
@@ -49,7 +47,7 @@ export class AuthService {
           firstName: dto.firstName,
           lastName: dto.lastName,
           matricule: await this.generateMatricule(),
-          levelId: dto.levelId,
+          levelId,
           specialtyId: dto.specialtyId,
         },
       });
@@ -63,7 +61,7 @@ export class AuthService {
       });
     }
 
-    return this.buildAuthResponse(user.id, user.email, user.role);
+    return this.buildAuthResponse(user.id);
   }
 
   async login(dto: LoginDto) {
@@ -85,7 +83,7 @@ export class AuthService {
       throw new UnauthorizedException('Compte désactivé');
     }
 
-    return this.buildAuthResponse(user.id, user.email, user.role);
+    return this.buildAuthResponse(user.id);
   }
 
   async refresh(dto: RefreshDto) {
@@ -112,11 +110,24 @@ export class AuthService {
     }
 
     // Rotation : on génère de nouveaux tokens, l'ancien devient inutilisable
-    return this.buildAuthResponse(user.id, user.email, user.role);
+    return this.buildAuthResponse(user.id);
   }
 
-  private async buildAuthResponse(userId: string, email: string, role: string) {
-    const payload = { sub: userId, email, role };
+  async me(userId: string) {
+    const user = await this.findUserWithProfile(userId);
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur introuvable');
+    }
+    return this.buildUserProfile(user);
+  }
+
+  private async buildAuthResponse(userId: string) {
+    const user = await this.findUserWithProfile(userId);
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur introuvable');
+    }
+
+    const payload = { sub: user.id, email: user.email, role: user.role };
 
     // Tokens without expiry to allow long-lived sessions (no enforced time limit)
     const accessToken = this.jwtService.sign(payload)
@@ -127,15 +138,74 @@ export class AuthService {
     // Hash rapide (SHA-256) adapté à un secret déjà à haute entropie
     const refreshTokenHash = this.hashToken(refreshToken);
     await this.prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: { refreshTokenHash },
     });
 
     return {
       accessToken,
       refreshToken,
-      user: { id: userId, email, role },
+      user: this.buildUserProfile(user),
     };
+  }
+
+  private async findUserWithProfile(userId: string) {
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        student: true,
+        teacher: true,
+      },
+    });
+  }
+
+  private buildUserProfile(user: { id: string; email: string; role: string; student: { firstName: string; lastName: string; matricule: string } | null; teacher: { firstName: string; lastName: string } | null }) {
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      student: user.student ? {
+        firstName: user.student.firstName,
+        lastName: user.student.lastName,
+        matricule: user.student.matricule,
+      } : undefined,
+      teacher: user.teacher ? {
+        firstName: user.teacher.firstName,
+        lastName: user.teacher.lastName,
+      } : undefined,
+    };
+  }
+
+  private async findOrCreateDefaultLevel() {
+    let level = await this.prisma.level.findFirst();
+    if (level) return level.id;
+
+    const faculty = await this.prisma.faculty.create({
+      data: { name: 'Faculté des Sciences' },
+    });
+
+    const department = await this.prisma.department.create({
+      data: {
+        name: 'Département d\'Informatique',
+        facultyId: faculty.id,
+      },
+    });
+
+    const program = await this.prisma.program.create({
+      data: {
+        name: 'Licence Informatique',
+        departmentId: department.id,
+      },
+    });
+
+    level = await this.prisma.level.create({
+      data: {
+        name: 'Licence 1',
+        programId: program.id,
+      },
+    });
+
+    return level.id;
   }
 
   private hashToken(token: string): string {
