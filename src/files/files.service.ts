@@ -8,7 +8,7 @@ import { EntityType } from '@prisma/client';
 export class FilesService {
   constructor(private prisma: PrismaService) {}
 
-  async uploadFile(file: Express.Multer.File, entityType: EntityType, entityId: string) {
+  async uploadFile(file: any, entityType: EntityType, entityId: string) {
     return new Promise((resolve, reject) => {
       const upload = cloudinary.uploader.upload_stream(
         { folder: 'uniflow_docs' },
@@ -16,7 +16,7 @@ export class FilesService {
           if (error) return reject(error);
           
           // Sauvegarde dans la BD
-          const attachment = await this.prisma.attachment.create({
+          const attachment = await (this.prisma as any).attachment.create({
             data: {
               url: result!.secure_url,
               publicId: result!.public_id,
@@ -35,10 +35,10 @@ export class FilesService {
   }
 
   async deleteFile(id: string) {
-    const attachment = await this.prisma.attachment.findUnique({ where: { id } });
+    const attachment = await (this.prisma as any).attachment.findUnique({ where: { id } });
     if (!attachment) return;
     
     await cloudinary.uploader.destroy(attachment.publicId);
-    await this.prisma.attachment.delete({ where: { id } });
+    await (this.prisma as any).attachment.delete({ where: { id } });
   }
 }
