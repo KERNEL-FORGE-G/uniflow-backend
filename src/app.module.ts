@@ -18,6 +18,7 @@ import { SchedulesModule } from './schedules/schedules.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { VideoconferenceModule } from './videoconference/videoconference.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { StatsModule } from './stats/stats.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 @Module({
@@ -55,6 +56,7 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
     SchedulesModule,
     AttendanceModule,
     VideoconferenceModule,
+    StatsModule,
     AuditLogsModule,
   ],
   controllers: [AppController],
