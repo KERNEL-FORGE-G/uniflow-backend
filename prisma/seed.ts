@@ -43,15 +43,11 @@ async function main() {
     prisma.level.create({ data: { name: "Licence 3", programId: program.id } }),
   ]);
 
-  await prisma.specialty.createMany({
-    data: [
-      { name: 'Informatique', levelId: level1.id },
-      { name: 'Informatique', levelId: level2.id },
-      { name: 'Génie Logiciel', levelId: level2.id },
-      { name: 'Informatique', levelId: level3.id },
-      { name: 'Réseaux et Télécommunications', levelId: level3.id },
-    ],
-  });
+  const infoL1Specialty = await prisma.specialty.create({ data: { name: 'Informatique', levelId: level1.id } });
+  const infoL2Specialty = await prisma.specialty.create({ data: { name: 'Informatique', levelId: level2.id } });
+  const glL2Specialty = await prisma.specialty.create({ data: { name: 'Génie Logiciel', levelId: level2.id } });
+  const infoL3Specialty = await prisma.specialty.create({ data: { name: 'Informatique', levelId: level3.id } });
+  const rtL3Specialty = await prisma.specialty.create({ data: { name: 'Réseaux et Télécommunications', levelId: level3.id } });
 
   const [classroomA, classroomTd, classroomLab] = await Promise.all([
     prisma.classroom.create({
@@ -94,7 +90,7 @@ async function main() {
         levelId: level1.id,
         semesterId: semester.id,
         specialties: {
-          create: [{ specialtyId: level1.id ? '' : '' }],
+          create: [{ specialtyId: infoL1Specialty.id }],
         },
       },
     }),
@@ -110,7 +106,7 @@ async function main() {
         levelId: level1.id,
         semesterId: semester.id,
         specialties: {
-          create: [{ specialty: { connect: { name: 'Informatique' } } }],
+          create: [{ specialtyId: infoL1Specialty.id }],
         },
       },
     }),
@@ -127,8 +123,8 @@ async function main() {
         semesterId: semester.id,
         specialties: {
           create: [
-            { specialty: { connect: { name: 'Informatique' } } },
-            { specialty: { connect: { name: 'Génie Logiciel' } } },
+            { specialtyId: infoL2Specialty.id },
+            { specialtyId: glL2Specialty.id },
           ],
         },
       },
@@ -146,8 +142,8 @@ async function main() {
         semesterId: semester.id,
         specialties: {
           create: [
-            { specialty: { connect: { name: 'Informatique' } } },
-            { specialty: { connect: { name: 'Génie Logiciel' } } },
+            { specialtyId: infoL2Specialty.id },
+            { specialtyId: glL2Specialty.id },
           ],
         },
       },
@@ -165,8 +161,8 @@ async function main() {
         semesterId: semester.id,
         specialties: {
           create: [
-            { specialty: { connect: { name: 'Informatique' } } },
-            { specialty: { connect: { name: 'Réseaux et Télécommunications' } } },
+            { specialtyId: infoL3Specialty.id },
+            { specialtyId: rtL3Specialty.id },
           ],
         },
       },

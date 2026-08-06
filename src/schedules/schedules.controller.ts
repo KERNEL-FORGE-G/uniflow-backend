@@ -8,8 +8,10 @@ import {
   Delete,
   Body,
   Param,
+  Request,
   UseGuards,
 } from '@nestjs/common';
+import { Request as ExpressRequest } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -17,6 +19,14 @@ import { SchedulesService } from './schedules.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { GenerateSchedulesDto } from './dto/generate-schedules.dto';
+
+interface AuthenticatedRequest extends ExpressRequest {
+  user: {
+    userId: string;
+    email: string;
+    role: string;
+  };
+}
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('schedules')

@@ -174,6 +174,56 @@ export class SchedulesService {
     });
   }
 
+  async findMineByUserId(userId: string) {
+    const teacher = await this.prisma.teacher.findUnique({
+      where: { userId },
+    });
+
+    if (teacher) {
+      return this.prisma.schedule.findMany({
+        where: { deletedAt: null, course: { teacherId: teacher.id } },
+        include: {
+          course: {
+            include: { teachingUnit: true, teacher: true, classroom: true },
+          },
+        },
+      });
+    }
+
+    const student = await this.prisma.student.findUnique({
+      where: { userId },
+    });
+
+    if (!student) {
+      return [];
+    }
+
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: {
+        studentId: student.id,
+        status: 'VALIDATED',
+        deletedAt: null,
+      },
+      select: { teachingUnitId: true },
+    });
+
+    if (enrollments.length === 0) {
+      return [];
+    }
+
+    return this.prisma.schedule.findMany({
+      where: {
+        deletedAt: null,
+        course: { teachingUnitId: { in: enrollments.map((e) => e.teachingUnitId) } },
+      },
+      include: {
+        course: {
+          include: { teachingUnit: true, teacher: true, classroom: true },
+        },
+      },
+    });
+  }
+
   // Génération automatique de créneaux (§10.2 et §4.7 du CDC).
   // Algorithme glouton : pour chaque cours, on essaie les créneaux candidats
   // dans l'ordre et on place le premier sans conflit. Traitement séquentiel
