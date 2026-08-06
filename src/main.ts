@@ -11,14 +11,16 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Protection des en-têtes HTTP (§9.3 du CDC)
+  // Assouplissement temporaire de la CSP pour permettre Swagger et les outils Vercel/Translate
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-          styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-          imgSrc: ["'self'", "data:", "https://validator.swagger.io"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://*.vercel.live"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://translate.googleapis.com", "https://www.gstatic.com"],
+          imgSrc: ["'self'", "data:", "https://validator.swagger.io", "https://*.googleapis.com", "https://*.gstatic.com"],
+          connectSrc: ["'self'", "https://*.vercel.live"],
         },
       },
     }),
@@ -33,8 +35,6 @@ async function bootstrap() {
     }),
   );
 
-  // Note: Les filtres globaux peuvent intercepter les erreurs 404 de Swagger.
-  // SwaggerModule.setup doit être configuré pour minimiser les conflits.
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(
     new LoggingInterceptor(),
@@ -73,12 +73,20 @@ async function bootstrap() {
   
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
   
+  // Utilisation explicite des CDN pour les assets afin d'éviter le problème de 404/MIME type
   SwaggerModule.setup('api/docs', app, swaggerDocument, {
     swaggerOptions: {
       persistAuthorization: true,
-      defaultModelsExpandDepth: -1, // Cache les modèles par défaut
+      defaultModelsExpandDepth: -1,
     },
     customSiteTitle: 'UniFlow API Documentation',
+    customJs: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.0/swagger-ui-bundle.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.0/swagger-ui-standalone-preset.min.js'
+    ],
+    customCssUrl: [
+      'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.0/swagger-ui.min.css'
+    ],
   });
 
   await app.listen(process.env.PORT ?? 3000);
