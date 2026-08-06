@@ -11,7 +11,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Protection des en-têtes HTTP (§9.3 du CDC)
-  app.use(helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"], styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"], imgSrc: ["'self'", "data:", "https://validator.swagger.io"] } } }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+          imgSrc: ["'self'", "data:", "https://validator.swagger.io"],
+        },
+      },
+    }),
+  );
 
   // Validation automatique des DTO (class-validator) — §7.2 du CDC
   app.useGlobalPipes(
@@ -22,6 +33,8 @@ async function bootstrap() {
     }),
   );
 
+  // Note: Les filtres globaux peuvent intercepter les erreurs 404 de Swagger.
+  // SwaggerModule.setup doit être configuré pour minimiser les conflits.
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(
     new LoggingInterceptor(),
@@ -57,8 +70,16 @@ async function bootstrap() {
       'JWT-auth',
     )
     .build();
+  
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, swaggerDocument);
+  
+  SwaggerModule.setup('api/docs', app, swaggerDocument, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      defaultModelsExpandDepth: -1, // Cache les modèles par défaut
+    },
+    customSiteTitle: 'UniFlow API Documentation',
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }
