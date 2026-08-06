@@ -118,13 +118,11 @@ export class AuthService {
   private async buildAuthResponse(userId: string, email: string, role: string) {
     const payload = { sub: userId, email, role };
 
-    const accessToken = this.jwtService.sign(payload, {
-      expiresIn: '1h',
-    });
+    // Tokens without expiry to allow long-lived sessions (no enforced time limit)
+    const accessToken = this.jwtService.sign(payload)
 
-    const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: '7d',
-    });
+    // Refresh token also without explicit expiry; rotation still applies via stored hash
+    const refreshToken = this.jwtService.sign(payload)
 
     // Hash rapide (SHA-256) adapté à un secret déjà à haute entropie
     const refreshTokenHash = this.hashToken(refreshToken);
