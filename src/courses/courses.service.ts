@@ -73,13 +73,40 @@ export class CoursesService {
       where: { userId },
     });
 
-    if (!teacher) {
+    if (teacher) {
+      return this.findByTeacher(teacher.id);
+    }
+
+    const student = await this.prisma.student.findUnique({
+      where: { userId },
+    });
+
+    if (!student) {
       throw new NotFoundException(
-        'Aucun profil enseignant associé à cet utilisateur',
+        'Aucun profil enseignant ou étudiant associé à cet utilisateur',
       );
     }
 
-    return this.findByTeacher(teacher.id);
+    const enrollments = await this.prisma.enrollment.findMany({
+      where: {
+        studentId: student.id,
+        status: 'VALIDATED',
+        deletedAt: null,
+      },
+      select: { teachingUnitId: true },
+    });
+
+    if (enrollments.length === 0) {
+      return [];
+    }
+
+    return this.prisma.course.findMany({
+      where: {
+        teachingUnitId: { in: enrollments.map((e) => e.teachingUnitId) },
+        deletedAt: null,
+      },
+      include: { teachingUnit: true, teacher: true, classroom: true },
+    });
   }
 
   async findOne(id: string) {

@@ -35,6 +35,11 @@ export class SchedulesController {
     return this.schedulesService.generate(dto);
   }
 
+  @Get('my')
+  findMine(@Request() req: AuthenticatedRequest) {
+    return this.schedulesService.findMineByUserId(req.user.userId);
+  }
+
   @Get()
   findAll() {
     return this.schedulesService.findAll();

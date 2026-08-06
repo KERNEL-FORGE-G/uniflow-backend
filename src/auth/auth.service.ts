@@ -121,6 +121,91 @@ export class AuthService {
     return this.buildUserProfile(user);
   }
 
+  async getAcademicOptions() {
+    await this.ensureAcademicDefaults();
+    const levels = await this.prisma.level.findMany({
+      select: {
+        id: true,
+        name: true,
+        program: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+    const specialties = await this.prisma.specialty.findMany({
+      select: {
+        id: true,
+        name: true,
+        levelId: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+    return { levels: levels.map(level => ({
+      id: level.id,
+      name: level.name,
+      programName: level.program.name,
+    })), specialties };
+  }
+
+  async getSpecialties(levelId?: string) {
+    await this.ensureAcademicDefaults();
+    return this.prisma.specialty.findMany({
+      where: levelId ? { levelId } : undefined,
+      select: {
+        id: true,
+        name: true,
+        levelId: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  private async ensureAcademicDefaults() {
+    const existingLevels = await this.prisma.level.count();
+    if (existingLevels > 0) return;
+
+    const faculty = await this.prisma.faculty.create({
+      data: { name: 'Faculté des Sciences' },
+    });
+
+    const department = await this.prisma.department.create({
+      data: {
+        name: 'Département d\'Informatique',
+        facultyId: faculty.id,
+      },
+    });
+
+    const program = await this.prisma.program.create({
+      data: {
+        name: 'Licence Informatique',
+        departmentId: department.id,
+      },
+    });
+
+    const level1 = await this.prisma.level.create({
+      data: { name: 'Licence 1', programId: program.id },
+    });
+    const level2 = await this.prisma.level.create({
+      data: { name: 'Licence 2', programId: program.id },
+    });
+    const level3 = await this.prisma.level.create({
+      data: { name: 'Licence 3', programId: program.id },
+    });
+
+    await this.prisma.specialty.createMany({
+      data: [
+        { name: 'Informatique', levelId: level1.id },
+        { name: 'Informatique', levelId: level2.id },
+        { name: 'Informatique', levelId: level3.id },
+        { name: 'Génie Logiciel', levelId: level2.id },
+        { name: 'Réseaux et Télécommunications', levelId: level3.id },
+      ],
+    });
+  }
+
   private async buildAuthResponse(userId: string) {
     const user = await this.findUserWithProfile(userId);
     if (!user) {
@@ -153,26 +238,54 @@ export class AuthService {
     return this.prisma.user.findUnique({
       where: { id: userId },
       include: {
-        student: true,
+        student: {
+          include: {
+            level: { select: { name: true } },
+            specialty: { select: { name: true } },
+          },
+        },
         teacher: true,
       },
     });
   }
 
-  private buildUserProfile(user: { id: string; email: string; role: string; student: { firstName: string; lastName: string; matricule: string } | null; teacher: { firstName: string; lastName: string } | null }) {
+  private buildUserProfile(user: {
+    id: string;
+    email: string;
+    role: string;
+    student:
+      | {
+          id: string;
+          firstName: string;
+          lastName: string;
+          matricule: string;
+          level?: { name: string } | null;
+          specialty?: { name: string } | null;
+        }
+      | null;
+    teacher: { id: string; firstName: string; lastName: string } | null;
+  }) {
     return {
       id: user.id,
       email: user.email,
       role: user.role,
-      student: user.student ? {
-        firstName: user.student.firstName,
-        lastName: user.student.lastName,
-        matricule: user.student.matricule,
-      } : undefined,
-      teacher: user.teacher ? {
-        firstName: user.teacher.firstName,
-        lastName: user.teacher.lastName,
-      } : undefined,
+      student: user.student
+        ? {
+            id: user.student.id,
+            firstName: user.student.firstName,
+            lastName: user.student.lastName,
+            matricule: user.student.matricule,
+            level: user.student.level?.name,
+            specialty: user.student.specialty?.name,
+          }
+        : undefined,
+      teacher: user.teacher
+        ? {
+            id: user.teacher.id,
+            firstName: user.teacher.firstName,
+            lastName: user.teacher.lastName,
+          }
+        : undefined,
     };
   }
 
