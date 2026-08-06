@@ -44,7 +44,12 @@ async function bootstrap() {
   // Configuration CORS sécurisée (§9.3)
   const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
     ? process.env.CORS_ALLOWED_ORIGINS.split(',')
-    : ['http://localhost:3000', 'http://localhost:5173'];
+    : [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://uniflow.kernelforge.codes',
+        'https://api-uniflow.kernelforge.codes',
+      ];
 
   app.enableCors({
     origin: allowedOrigins,
