@@ -11,7 +11,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Protection des en-têtes HTTP (§9.3 du CDC)
-  app.use(helmet());
+  app.use(helmet({ contentSecurityPolicy: { directives: { defaultSrc: ["'self'"], scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"], styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"], imgSrc: ["'self'", "data:", "https://validator.swagger.io"] } } }));
 
   // Validation automatique des DTO (class-validator) — §7.2 du CDC
   app.useGlobalPipes(
