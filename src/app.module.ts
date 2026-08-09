@@ -1,3 +1,4 @@
+import { AdminToolModule } from './admin-tool/admin-tool.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -58,6 +59,7 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
     VideoconferenceModule,
     StatsModule,
     AuditLogsModule,
+    AdminToolModule,
   ],
   controllers: [AppController],
   providers: [
