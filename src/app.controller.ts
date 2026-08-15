@@ -1,9 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
+import { AppwriteService } from './appwrite/appwrite.service';
 import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly appwriteService: AppwriteService,
+  ) {}
 
   @Get()
   getHello(): string {
@@ -26,5 +30,10 @@ export class AppController {
         databaseConfigured: /^postgres(?:ql)?:\/\//i.test(databaseUrl.trim()),
       },
     };
+  }
+
+  @Get('health/appwrite')
+  async getAppwriteHealth() {
+    return this.appwriteService.status();
   }
 }

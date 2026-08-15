@@ -22,12 +22,14 @@ import { VideoconferenceModule } from './videoconference/videoconference.module'
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { StatsModule } from './stats/stats.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
+import { AppwriteModule } from './appwrite/appwrite.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AppwriteModule,
     ThrottlerModule.forRoot([
       {
         name: 'short',
