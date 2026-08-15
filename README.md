@@ -1,98 +1,104 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# UniFlow Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+UniFlow est une plateforme universitaire intelligente, modulaire et "Offline First", conçue pour gérer la scolarité, la planification et la communication au sein d'un établissement d'enseignement supérieur.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🛠 Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Framework :** [NestJS](https://nestjs.com/) (TypeScript)
+- **Base de données :** PostgreSQL
+- **ORM :** [Prisma](https://www.prisma.io/)
+- **Documentation API :** Swagger / OpenAPI
+- **Stockage Média :** [Cloudinary](https://cloudinary.com/)
+- **Authentification :** JWT (JSON Web Tokens)
+- **Sécurité :** Helmet, CORS, Rate Limiting (Throttler)
 
-## Project setup
+---
 
+## 🚀 Mise en route
+
+### 1. Prérequis
+- Node.js (version 20+)
+- npm ou yarn
+- PostgreSQL (instance locale ou distante)
+- Compte Cloudinary pour le stockage des médias
+
+### 2. Installation
 ```bash
-$ npm install
+# Cloner le dépôt
+git clone <url-du-depot>
+cd uniflow-backend
+
+# Installer les dépendances
+npm install
 ```
 
-## Compile and run the project
+### 3. Configuration de l'environnement
+Copiez le fichier `.env.example` vers `.env` et remplissez les valeurs :
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
 ```
 
-## Run tests
+**Variables nécessaires :**
+- `DATABASE_URL` : Chaîne de connexion PostgreSQL.
+- `JWT_SECRET` : Chaîne longue et aléatoire.
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` : Identifiants Cloudinary.
 
+### 4. Base de données
 ```bash
-# unit tests
-$ npm run test
+# Générer le client Prisma
+npx prisma generate
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Appliquer les migrations
+npx prisma migrate dev --name init
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 📖 API Documentation
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+La documentation interactive de l'API est disponible via **Swagger UI** :
+👉 [https://api-uniflow.kernelforge.codes/api/docs](https://api-uniflow.kernelforge.codes/api/docs)
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### Exemple d'utilisation des endpoints
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+#### Authentification (`/auth`)
+- `POST /auth/register` : Inscription d'un utilisateur.
+- `POST /auth/login` : Authentification et obtention d'un JWT.
+- `POST /auth/refresh` : Rafraîchissement du token.
 
-## Resources
+#### Étudiants (`/students`)
+- `GET /students` : Liste des étudiants (nécessite rôle `SECRETARIAT`+).
+- `POST /students` : Création d'un étudiant (nécessite rôle `SECRETARIAT`+).
+- `POST /students/:id/upload` : Upload d'un document (via `Multipart/form-data`).
 
-Check out a few resources that may come in handy when working with NestJS:
+#### Gestion des fichiers (`FilesModule`)
+Le backend utilise Cloudinary. Tous les documents (PDF, images, etc.) sont stockés sur Cloudinary et les références sont conservées dans la table `attachments` de la base de données.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## ⚙️ Développement & Scripts
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- **Démarrer en développement :** `npm run start:dev`
+- **Build pour production :** `npm run build`
+- **Lancer les tests :** `npm run test`
+- **Linting :** `npm run lint`
 
-## Stay in touch
+---
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 🛡️ Architecture & Conventions
 
-## License
+Le projet suit une architecture modulaire par fonctionnalités (feature-based). Chaque module contient :
+- `*.controller.ts` : Points d'entrée API.
+- `*.service.ts` : Logique métier.
+- `dto/` : Schémas de validation (class-validator) et documentation (Swagger).
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Traçabilité
+Le système implémente une interception globale (`AuditInterceptor`) qui enregistre automatiquement chaque action sensible dans la table `audit_logs` conformément aux exigences de sécurité.
+
+---
+
+## 📝 License
+UniFlow est sous licence MIT.
