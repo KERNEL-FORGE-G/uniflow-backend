@@ -1,4 +1,5 @@
 import { AdminToolModule } from './admin-tool/admin-tool.module';
+import { AssignmentsModule } from './assignments/assignments.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -60,6 +61,7 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
     StatsModule,
     AuditLogsModule,
     AdminToolModule,
+    AssignmentsModule,
   ],
   controllers: [AppController],
   providers: [
