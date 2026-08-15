@@ -21,6 +21,10 @@ expressApp.use((req, _res, next) => {
 
 expressApp.get('/favicon.ico', (req, res) => res.status(204).end());
 
+// Compatibilité avec les clients et signets qui utilisent les chemins Swagger historiques.
+expressApp.get('/docs', (_req, res) => res.redirect('/api/docs'));
+expressApp.get('/docs-json', (_req, res) => res.redirect('/api/docs-json'));
+
 // Redirect Swagger UI static assets to CDN to prevent 404/MIME errors in Vercel Serverless
 expressApp.get('/api/docs/swagger-ui.css', (req, res) =>
   res.redirect('https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.10.0/swagger-ui.min.css'),
