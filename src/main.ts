@@ -10,12 +10,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api');
-  // `/api` est le préfixe public canonique ; les anciens appels `/api/v1/*`
-  // sont réécrits vers le même endpoint.
+  app.setGlobalPrefix('');
+  // Les routes métier sont exposées à la racine ; les anciens préfixes API
+  // restent acceptés comme alias.
   app.use((req, _res, next) => {
-    if (req.url.startsWith('/api/v1/')) {
-      req.url = `/api${req.url.slice('/api/v1'.length)}`;
+    if (req.url.startsWith('/api/v1/') && !req.url.startsWith('/api/v1/docs')) {
+      req.url = req.url.slice('/api/v1'.length) || '/';
+    } else if (req.url.startsWith('/api/') && !req.url.startsWith('/api/docs')) {
+      req.url = req.url.slice('/api'.length) || '/';
     }
     next();
   });
