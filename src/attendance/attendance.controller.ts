@@ -19,6 +19,7 @@ import { ScanQrDto } from './dto/scan-qr.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { TeacherHasUeGuard } from '../common/guards/teacher-has-ue.guard';
 
 interface AuthenticatedRequest extends ExpressRequest {
   user: {
@@ -34,7 +35,7 @@ export class AttendanceController {
   constructor(private attendanceService: AttendanceService) {}
 
   @Post('sessions')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, TeacherHasUeGuard)
   @Roles('SUPER_ADMIN', 'ADMIN', 'SECRETARIAT', 'ENSEIGNANT')
   @HttpCode(HttpStatus.CREATED)
   async createSession(@Body() dto: CreateSessionDto) {
@@ -52,7 +53,7 @@ export class AttendanceController {
   }
 
   @Patch('sessions/:sessionId/mark')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, TeacherHasUeGuard)
   @Roles('SUPER_ADMIN', 'ADMIN', 'SECRETARIAT', 'ENSEIGNANT', 'DELEGUE')
   async markAttendance(
     @Param('sessionId') sessionId: string,
@@ -72,7 +73,7 @@ export class AttendanceController {
   }
 
   @Delete('sessions/:id')
-  @UseGuards(RolesGuard)
+  @UseGuards(RolesGuard, TeacherHasUeGuard)
   @Roles('SUPER_ADMIN', 'ADMIN', 'ENSEIGNANT')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {

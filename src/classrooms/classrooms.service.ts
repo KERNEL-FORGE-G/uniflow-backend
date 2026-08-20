@@ -6,7 +6,7 @@
 // C'est important pour l'historique (une salle "supprimée" peut encore
 // être référencée par d'anciens cours/emplois du temps).
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClassroomDto } from './dto/create-classroom.dto';
 import { UpdateClassroomDto } from './dto/update-classroom.dto';
@@ -15,8 +15,20 @@ import { UpdateClassroomDto } from './dto/update-classroom.dto';
 export class ClassroomsService {
   constructor(private prisma: PrismaService) {}
 
-  create(dto: CreateClassroomDto) {
-    return this.prisma.classroom.create({ data: dto });
+  async create(dto: CreateClassroomDto) {
+    const university = await this.prisma.university.findUnique({
+      where: { code: dto.universityCode },
+    });
+    if (!university) {
+      throw new BadRequestException(`Université inconnue : "${dto.universityCode}"`);
+    }
+
+    const { universityCode, ...classroomData } = dto;
+    void universityCode; // déjà résolu ci-dessus, on ne le passe pas tel quel à Prisma
+
+    return this.prisma.classroom.create({
+      data: { ...classroomData, universityId: university.id },
+    });
   }
 
   findAll() {

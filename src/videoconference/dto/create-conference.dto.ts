@@ -1,11 +1,18 @@
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsInt, IsOptional, IsUUID, Max, Min, ValidateIf } from 'class-validator';
+import { ConferenceVisibility } from '@prisma/client';
 
 export class CreateConferenceDto {
-  @IsOptional()
-  @IsString()
-  courseId?: string; // à confirmer avec Dev B une fois son modèle Course mergé
+  @IsEnum(ConferenceVisibility)
+  visibility!: ConferenceVisibility;
+
+  // Obligatoire uniquement si visibility === 'PRIVATE' ; ignoré si 'PUBLIC'.
+  @ValidateIf((o) => o.visibility === ConferenceVisibility.PRIVATE)
+  @IsUUID()
+  courseId?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(200)

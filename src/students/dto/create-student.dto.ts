@@ -22,6 +22,14 @@ export class CreateStudentDto {
   @IsString()
   lastName!: string;
 
+<<<<<<< Updated upstream
+=======
+  @ApiProperty({ description: 'Code de l\'université (ex: "UY1")', example: 'UY1' })
+  @IsString()
+  universityCode!: string;
+
+  @ApiPropertyOptional({ enum: StudentStatus, description: 'Statut de l\'étudiant' })
+>>>>>>> Stashed changes
   @IsOptional()
   @IsEnum(StudentStatus)
   status?: StudentStatus;

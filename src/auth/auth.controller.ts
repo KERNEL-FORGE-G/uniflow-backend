@@ -45,6 +45,24 @@ export class AuthController {
     return this.authService.refresh(dto);
   }
 
+<<<<<<< Updated upstream
+=======
+  @Get('academic-options')
+  @HttpCode(HttpStatus.OK)
+  async academicOptions(@Query('universityCode') universityCode: string) {
+    return this.authService.getAcademicOptions(universityCode);
+  }
+
+  @Get('specialties')
+  @HttpCode(HttpStatus.OK)
+  async specialties(
+    @Query('universityCode') universityCode: string,
+    @Query('levelId') levelId?: string,
+  ) {
+    return this.authService.getSpecialties(universityCode, levelId);
+  }
+
+>>>>>>> Stashed changes
   @Get('me')
   @UseGuards(JwtAuthGuard)
   me(@Request() req: AuthenticatedRequest) {

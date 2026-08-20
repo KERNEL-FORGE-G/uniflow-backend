@@ -17,6 +17,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @Controller('students')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -67,5 +68,13 @@ export class StudentsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
     await this.studentsService.remove(id);
+  }
+
+  @Patch(':id/promote-delegue')
+  @ApiOperation({ summary: 'Promouvoir un étudiant au rôle de délégué' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Étudiant promu délégué' })
+  @Roles('SUPER_ADMIN', 'ADMIN', 'ENSEIGNANT')
+  async promoteToDelegue(@Param('id') id: string, @CurrentUser() user) {
+    return this.studentsService.promoteToDelegue(id, user.userId, user.role);
   }
 }

@@ -36,13 +36,37 @@ enum StudentStatus {
 // (Dev A) - Identité & Utilisateurs
 // ============================================================
 
+model University {
+  id     String  @id @default(uuid())
+  name   String
+  code   String  @unique // ex: "UY1"
+  domain String?
+
+  users      User[]
+  faculties  Faculty[]
+  classrooms Classroom[]
+  semesters  Semester[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("universities")
+}
+
 model User {
   id               String   @id @default(uuid())
-  email            String   @unique
+  email            String
   passwordHash     String
   refreshTokenHash String?
   role             UserRole
   isActive         Boolean  @default(true)
+
+  // Étape 1 (cette migration) : optionnel, pour ne pas casser les lignes existantes.
+  // Étape 2 (migration suivante, après backfill) : passera en String obligatoire.
+
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -51,10 +75,14 @@ model User {
   student Student?
   teacher Teacher?
 
-  notifications             Notification[]
-  hostedConferences         VideoConference[]
-  conferenceParticipations  ConferenceParticipant[]
+  notifications            Notification[]
+  hostedConferences        VideoConference[]
+  conferenceParticipations ConferenceParticipant[]
+  conferenceInvites        ConferenceInvite[]
+  sentMessages             Message[]               @relation("SentMessages")
+  receivedMessages         Message[]               @relation("ReceivedMessages")
 
+  @@unique([email, universityId])
   @@map("users")
 }
 
@@ -104,10 +132,12 @@ model Teacher {
 // ============================================================
 
 model Faculty {
-  id          String   @id @default(uuid())
-  name        String
-  nameEn      String?
-  description String?
+  id           String     @id @default(uuid())
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
+  name         String
+  nameEn       String?
+  description  String?
 
   departments Department[]
 
@@ -201,11 +231,13 @@ enum EnrollmentStatus {
 }
 
 model Semester {
-  id        String   @id @default(uuid())
-  name      String
-  startDate DateTime
-  endDate   DateTime
-  isActive  Boolean  @default(true)
+  id           String     @id @default(uuid())
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
+  name         String
+  startDate    DateTime
+  endDate      DateTime
+  isActive     Boolean    @default(true)
 
   teachingUnits TeachingUnit[]
 
@@ -318,6 +350,32 @@ model Notification {
 }
 
 // ============================================================
+// (Dev C) - Messagerie
+// ============================================================
+
+enum MessageStatus {
+  SENT
+  READ
+}
+
+model Message {
+  id         String @id @default(uuid())
+  senderId   String
+  sender     User   @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User   @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  content String
+  status  MessageStatus @default(SENT)
+  readAt  DateTime?
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  @@map("messages")
+}
+
+// ============================================================
 // (Dev B) - Planification : Salles, Cours, Emplois du temps
 // ============================================================
 
@@ -343,11 +401,13 @@ enum DayOfWeek {
 }
 
 model Classroom {
-  id       String        @id @default(uuid())
-  name     String        @unique
-  building String?
-  capacity Int
-  type     ClassroomType
+  id           String        @id @default(uuid())
+  universityId String
+  university   University    @relation(fields: [universityId], references: [id])
+  name         String
+  building     String?
+  capacity     Int
+  type         ClassroomType
 
   courses Course[]
 
@@ -355,6 +415,7 @@ model Classroom {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  @@unique([name, universityId])
   @@map("classrooms")
 }
 
@@ -453,11 +514,19 @@ enum ConferenceStatus {
   ENDED
 }
 
+enum ConferenceVisibility {
+  PRIVATE
+  PUBLIC
+}
+
 model VideoConference {
   id     String @id @default(uuid())
   hostId String
   host   User   @relation(fields: [hostId], references: [id])
 
+  visibility ConferenceVisibility @default(PRIVATE)
+
+  // Obligatoire si PRIVATE (accès = inscrits à l'UE du cours) ; ignoré si PUBLIC
   courseId String?
   course   Course? @relation(fields: [courseId], references: [id])
 
@@ -473,6 +542,7 @@ model VideoConference {
   maxParticipants Int?
 
   participants ConferenceParticipant[]
+  invites      ConferenceInvite[]
 
   startedAt DateTime  @default(now())
   endedAt   DateTime?
@@ -481,6 +551,19 @@ model VideoConference {
   updatedAt DateTime @updatedAt
 
   @@map("video_conferences")
+}
+
+model ConferenceInvite {
+  id            String          @id @default(uuid())
+  conferenceId  String
+  conference    VideoConference @relation(fields: [conferenceId], references: [id])
+  invitedUserId String
+  invitedUser   User            @relation(fields: [invitedUserId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([conferenceId, invitedUserId])
+  @@map("conference_invites")
 }
 
 model ConferenceParticipant {
@@ -494,4 +577,71 @@ model ConferenceParticipant {
   leftAt   DateTime?
 
   @@map("conference_participants")
+<<<<<<< Updated upstream
 }
+=======
+}
+
+// ============================================================
+// (Dev D) - Sécurité & Traçabilité (Audit Logs - §9.4 CDC)
+// ============================================================
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  userId     String?
+  userRole   UserRole?
+  action     String
+  resource   String
+  resourceId String?
+  ipAddress  String?
+  userAgent  String?
+  statusCode Int?
+  details    Json?
+
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+enum EntityType {
+  STUDENT
+  TEACHER
+  COURSE
+  UE
+  CONFERENCE
+}
+
+model Attachment {
+  id       String @id @default(uuid())
+  url      String
+  publicId String
+  filename String
+  mimeType String
+  size     Int
+
+  entityType EntityType
+  entityId   String
+
+  createdAt DateTime @default(now())
+
+  @@map("attachments")
+}
+
+// ============================================================
+// (Dev C) - Forum
+// ============================================================
+
+model Forum {
+  id          String @id @default(uuid())
+  nom         String
+  email       String
+  etoiles     Int
+  likes       Int    @default(0)
+  commentaire String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("forum")
+}
+>>>>>>> Stashed changes

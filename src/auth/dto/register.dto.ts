@@ -2,11 +2,10 @@ import {
   IsEmail,
   IsString,
   MinLength,
-  IsEnum,
+  IsIn,
   IsOptional,
   IsUUID,
 } from 'class-validator';
-import { UserRole } from '@prisma/client';
 
 export class RegisterDto {
   @IsEmail()
@@ -16,8 +15,14 @@ export class RegisterDto {
   @MinLength(8)
   password!: string;
 
-  @IsEnum(UserRole)
-  role!: UserRole;
+  // Restreint volontairement aux deux seuls rôles auto-inscriptibles (§4 du document).
+  // ADMIN/SUPER_ADMIN/DIRECTION/SECRETARIAT/DELEGUE ne peuvent JAMAIS être obtenus via
+  // cette route publique — DELEGUE s'attribue uniquement via promotion.
+  @IsIn(['ETUDIANT', 'ENSEIGNANT'])
+  role!: 'ETUDIANT' | 'ENSEIGNANT';
+
+  @IsString()
+  universityCode!: string;
 
   @IsString()
   firstName!: string;

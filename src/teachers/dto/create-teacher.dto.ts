@@ -13,4 +13,7 @@ export class CreateTeacherDto {
 
   @IsString()
   lastName!: string;
+
+  @IsString()
+  universityCode!: string;
 }

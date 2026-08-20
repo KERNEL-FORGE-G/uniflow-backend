@@ -13,12 +13,19 @@ export class TeachersService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateTeacherDto) {
+    const university = await this.prisma.university.findUnique({
+      where: { code: dto.universityCode },
+    });
+    if (!university) {
+      throw new ConflictException(`Université inconnue : "${dto.universityCode}"`);
+    }
+
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+      where: { email_universityId: { email: dto.email, universityId: university.id } },
     });
 
     if (existingUser) {
-      throw new ConflictException('Un compte existe déjà avec cet email');
+      throw new ConflictException('Un compte existe déjà avec cet email dans cette université');
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
@@ -28,6 +35,7 @@ export class TeachersService {
         email: dto.email,
         passwordHash,
         role: 'ENSEIGNANT',
+        universityId: university.id,
       },
     });
 
@@ -42,7 +50,6 @@ export class TeachersService {
 
     return teacher;
   }
-
   async findAll(page = 1, pageSize = 20) {
     const skip = (page - 1) * pageSize;
 

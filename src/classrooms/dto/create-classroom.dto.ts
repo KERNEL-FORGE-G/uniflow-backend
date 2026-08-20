@@ -11,6 +11,9 @@ export class CreateClassroomDto {
   @IsString()
   name!: string;
 
+  @IsString()
+  universityCode!: string;
+
   @IsOptional()
   @IsString()
   building?: string;
