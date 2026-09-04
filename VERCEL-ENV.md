@@ -1,57 +1,52 @@
-# Variables Vercel — UniFlow Backend
+# Variables Vercel — UniFlow Backend avec Appwrite Storage
 
 Projet Vercel : `uniflow-backend`
 
 Domaine de production : `https://api-uniflow.kernelforge.codes`
 
-Identifiant Vercel : `prj_PetAIi6scVXVGDJFl4xR5Cr7b9xd`
+Le backend utilise désormais **Appwrite Storage** pour les fichiers. Cloudinary n’est plus utilisé.
 
 ## Variables obligatoires
 
-| Nom | Valeur à charger | Environnement | Type |
+| Nom | Valeur | Environnement | Type |
 |---|---|---|---|
 | `NODE_ENV` | `production` | Production, Preview | Configuration |
 | `PORT` | `3000` | Production, Preview | Configuration |
-| `DATABASE_URL` | URL PostgreSQL de production avec `sslmode=require` si nécessaire | Production, Preview | Secret |
+| `DATABASE_URL` | URL PostgreSQL accessible depuis Vercel, avec SSL si nécessaire | Production, Preview | Secret |
 | `JWT_SECRET` | Secret aléatoire long, au moins 64 caractères | Production, Preview | Secret |
-| `ENCRYPTION_KEY` | 64 caractères hexadécimaux pour AES-256 | Production, Preview | Secret |
+| `ENCRYPTION_KEY` | 64 caractères hexadécimaux | Production, Preview | Secret |
 | `CORS_ALLOWED_ORIGINS` | `https://uniflow.kernelforge.codes,https://api-uniflow.kernelforge.codes` | Production | Configuration |
+| `APPWRITE_ENDPOINT` | `https://appwrite.kernelforge.codes/v1` | Production, Preview | Configuration |
+| `APPWRITE_PROJECT_ID` | `6a959096002a64d9d4e6` | Production, Preview | Configuration |
+| `APPWRITE_API_KEY` | Clé API serveur Appwrite avec accès Storage | Production, Preview | Secret |
+| `APPWRITE_STORAGE_BUCKET_ID` | `uniflow_assets` | Production, Preview | Configuration |
 
-## Variables nécessaires aux uploads
+La clé `APPWRITE_API_KEY` doit être une clé serveur Appwrite autorisée à lire, créer et supprimer des fichiers dans le bucket `uniflow_assets`. Elle ne doit jamais être utilisée dans le web, Flutter ou Electron.
 
-Ces trois variables sont obligatoires si les routes de fichiers sont utilisées :
+## Variables qui ne sont plus nécessaires
 
-```text
-CLOUDINARY_CLOUD_NAME=VOTRE_CLOUD_NAME
-CLOUDINARY_API_KEY=VOTRE_CLOUDINARY_API_KEY
-CLOUDINARY_API_SECRET=VOTRE_CLOUDINARY_API_SECRET
-```
-
-Ajoutez-les en Production et Preview si vous voulez tester les uploads dans les previews. Sinon, limitez-les à Production.
-
-## Valeurs Appwrite
-
-Le backend NestJS actuel utilise **Prisma/PostgreSQL** pour ses routes métier. Il ne doit donc pas recevoir une clé Appwrite simplement parce que le frontend utilise Appwrite. Une clé Appwrite serveur ne doit jamais être exposée au navigateur.
-
-Si un module Appwrite serveur est ajouté ultérieurement, utilisez alors ces variables secrètes côté backend uniquement :
+Supprimez de Vercel les variables suivantes si elles existent et ne servent à aucun autre service :
 
 ```text
-APPWRITE_ENDPOINT=https://appwrite.kernelforge.codes/v1
-APPWRITE_PROJECT_ID=6a959096002a64d9d4e6
-APPWRITE_API_KEY=VOTRE_CLE_API_SERVEUR_APPWRITE
-APPWRITE_DATABASE_ID=uniflow
-APPWRITE_STORAGE_BUCKET_ID=uniflow_assets
+CLOUDINARY_CLOUD_NAME
+CLOUDINARY_API_KEY
+CLOUDINARY_API_SECRET
 ```
 
-## Configuration depuis l’interface Vercel
+## Génération des secrets
 
-Dans le projet `uniflow-backend`, ouvrez **Settings → Environment Variables** et ajoutez chaque variable. Les valeurs de `DATABASE_URL`, `JWT_SECRET`, `ENCRYPTION_KEY`, `CLOUDINARY_API_KEY` et `CLOUDINARY_API_SECRET` doivent être enregistrées comme secrets et ne doivent pas être commitées.
+```bash
+openssl rand -base64 64   # valeur de JWT_SECRET
+openssl rand -hex 32       # valeur de ENCRYPTION_KEY
+```
 
-Après modification des variables, déclenchez un nouveau déploiement. Vérifiez ensuite :
+## Vérifications après déploiement
+
+Après avoir enregistré les variables et relancé le déploiement Vercel, vérifiez :
 
 ```text
 https://api-uniflow.kernelforge.codes/api/docs
 https://api-uniflow.kernelforge.codes/api/v1/health
 ```
 
-La route de santé doit répondre avec `status: ok`, tandis que les routes protégées doivent répondre `401` lorsqu’elles sont appelées sans JWT.
+Un upload réussi doit créer le fichier dans `uniflow_assets`, puis enregistrer dans PostgreSQL l’ID Appwrite dans `Attachment.publicId` et l’URL de lecture Appwrite dans `Attachment.url`. Une suppression retire d’abord le fichier Appwrite, puis la ligne PostgreSQL.
