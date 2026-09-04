@@ -1,4 +1,5 @@
 import { AdminToolModule } from './admin-tool/admin-tool.module';
+import { AppwriteModule } from './appwrite/appwrite.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -45,6 +46,7 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
       },
     ]),
     AuthModule,
+    AppwriteModule,
     PrismaModule,
     StudentsModule,
     TeachersModule,
