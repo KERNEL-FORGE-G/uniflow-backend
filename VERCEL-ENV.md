@@ -4,7 +4,7 @@ Projet Vercel : `uniflow-backend`
 
 Domaine de production : `https://api-uniflow.kernelforge.codes`
 
-Le backend utilise désormais **Appwrite Storage** pour les fichiers. Cloudinary n’est plus utilisé.
+Le backend utilise désormais **Appwrite Database** comme source de données métier et **Appwrite Storage** pour les fichiers. Cloudinary n’est plus utilisé. La variable `UNIFLOW_DATA_SOURCE=appwrite` active les parcours migrés vers les collections Appwrite.
 
 ## Variables obligatoires
 
@@ -12,6 +12,7 @@ Le backend utilise désormais **Appwrite Storage** pour les fichiers. Cloudinary
 |---|---|---|---|
 | `NODE_ENV` | `production` | Production, Preview | Configuration |
 | `PORT` | `3000` | Production, Preview | Configuration |
+| `UNIFLOW_DATA_SOURCE` | `appwrite` | Production, Preview | Configuration |
 | `DATABASE_URL` | URL PostgreSQL accessible depuis Vercel, avec SSL si nécessaire | Production, Preview | Secret |
 | `JWT_SECRET` | Secret aléatoire long, au moins 64 caractères | Production, Preview | Secret |
 | `ENCRYPTION_KEY` | 64 caractères hexadécimaux | Production, Preview | Secret |
