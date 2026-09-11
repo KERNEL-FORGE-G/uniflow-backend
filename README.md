@@ -1,104 +1,45 @@
-# UniFlow Backend
+# ⚙️ UniFlow Backend — Services Utilitaires & Infrastructure
 
-UniFlow est une plateforme universitaire intelligente, modulaire et "Offline First", conçue pour gérer la scolarité, la planification et la communication au sein d'un établissement d'enseignement supérieur.
+![UniFlow Logo](../uniflow-we/logo.png)
 
----
+Le backend UniFlow est un service robuste basé sur **NestJS** conçu pour gérer les tâches de fond, les intégrations tierces et servir de passerelle utilitaire à l'infrastructure **Appwrite** de KERNEL FORGE.
 
-## 🛠 Tech Stack
+## 🏗️ Évolution de l'Architecture
+Dans la phase actuelle du projet, la majorité de la logique de données a été migrée vers **Appwrite** (Source de vérité unique). Le backend NestJS conserve les rôles critiques suivants :
+- **Appwrite Storage Bridge** : Gestion sécurisée des fichiers via l'API Key serveur.
+- **Sync & Audit** : Synchronisation entre les systèmes legacy et les nouvelles collections Appwrite.
+- **Visioconférence** : Gestion des jetons et de l'infrastructure LiveKit.
+- **IoT Sentinelle** : Réception et agrégation des logs provenant des puces Edge AI locales.
 
-- **Framework :** [NestJS](https://nestjs.com/) (TypeScript)
-- **Base de données :** PostgreSQL
-- **ORM :** [Prisma](https://www.prisma.io/)
-- **Documentation API :** Swagger / OpenAPI
-- **Stockage Média :** [Cloudinary](https://cloudinary.com/)
-- **Authentification :** JWT (JSON Web Tokens)
-- **Sécurité :** Helmet, CORS, Rate Limiting (Throttler)
+## 🛠️ Stack Technique
+- **Framework** : NestJS (Node.js).
+- **ORM** : Prisma (PostgreSQL pour les logs d'audit et la persistence auxiliaire).
+- **BaaS Client** : Appwrite Server SDK.
+- **Sécurité** : JWT, Chiffrement AES pour les secrets.
+- **Documentation** : Swagger/OpenAPI intégré.
 
----
+## 🚀 Fonctionnalités
+- **Auth Gateway** : Gestion des sessions hybrides et renouvellement de jetons.
+- **File Management** : Proxy sécurisé pour le téléversement vers Appwrite Storage.
+- **Attendance Roll** : Agrégation périodique des émargements pour rapports statistiques.
+- **Audit Logs** : Traçabilité complète des actions administratives critiques.
 
-## 🚀 Mise en route
-
-### 1. Prérequis
-- Node.js (version 20+)
-- npm ou yarn
-- PostgreSQL (instance locale ou distante)
-- Compte Cloudinary pour le stockage des médias
-
-### 2. Installation
-```bash
-# Cloner le dépôt
-git clone <url-du-depot>
-cd uniflow-backend
-
-# Installer les dépendances
-npm install
+## ⚙️ Configuration
+Un fichier `.env` complet est indispensable pour le fonctionnement :
+```env
+UNIFLOW_DATA_SOURCE=appwrite
+APPWRITE_ENDPOINT=https://appwrite.kernelforge.codes/v1
+APPWRITE_PROJECT_ID=6a959096002a64d9d4e6
+APPWRITE_API_KEY=votre_cle_serveur_secret
+DATABASE_URL=postgresql://...
+JWT_SECRET=votre_secret_jwt
 ```
 
-### 3. Configuration de l'environnement
-Copiez le fichier `.env.example` vers `.env` et remplissez les valeurs :
-
+## 📦 Docker & Déploiement
+Le backend est containerisé pour un déploiement facile sur VPS :
 ```bash
-cp .env.example .env
-```
-
-**Variables nécessaires :**
-- `DATABASE_URL` : Chaîne de connexion PostgreSQL.
-- `JWT_SECRET` : Chaîne longue et aléatoire.
-- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` : Identifiants Cloudinary.
-
-### 4. Base de données
-```bash
-# Générer le client Prisma
-npx prisma generate
-
-# Appliquer les migrations
-npx prisma migrate dev --name init
+docker-compose up -d
 ```
 
 ---
-
-## 📖 API Documentation
-
-La documentation interactive de l'API est disponible via **Swagger UI** :
-👉 [https://api-uniflow.kernelforge.codes/api/docs](https://api-uniflow.kernelforge.codes/api/docs)
-
-### Exemple d'utilisation des endpoints
-
-#### Authentification (`/auth`)
-- `POST /auth/register` : Inscription d'un utilisateur.
-- `POST /auth/login` : Authentification et obtention d'un JWT.
-- `POST /auth/refresh` : Rafraîchissement du token.
-
-#### Étudiants (`/students`)
-- `GET /students` : Liste des étudiants (nécessite rôle `SECRETARIAT`+).
-- `POST /students` : Création d'un étudiant (nécessite rôle `SECRETARIAT`+).
-- `POST /students/:id/upload` : Upload d'un document (via `Multipart/form-data`).
-
-#### Gestion des fichiers (`FilesModule`)
-Le backend utilise Cloudinary. Tous les documents (PDF, images, etc.) sont stockés sur Cloudinary et les références sont conservées dans la table `attachments` de la base de données.
-
----
-
-## ⚙️ Développement & Scripts
-
-- **Démarrer en développement :** `npm run start:dev`
-- **Build pour production :** `npm run build`
-- **Lancer les tests :** `npm run test`
-- **Linting :** `npm run lint`
-
----
-
-## 🛡️ Architecture & Conventions
-
-Le projet suit une architecture modulaire par fonctionnalités (feature-based). Chaque module contient :
-- `*.controller.ts` : Points d'entrée API.
-- `*.service.ts` : Logique métier.
-- `dto/` : Schémas de validation (class-validator) et documentation (Swagger).
-
-### Traçabilité
-Le système implémente une interception globale (`AuditInterceptor`) qui enregistre automatiquement chaque action sensible dans la table `audit_logs` conformément aux exigences de sécurité.
-
----
-
-## 📝 License
-UniFlow est sous licence MIT.
+© 2026 **KERNEL FORGE** — L'épine dorsale de l'écosystème UniFlow.
