@@ -1,45 +1,43 @@
-# ⚙️ UniFlow Backend — Services Utilitaires & Infrastructure
+# UniFlow Backend (hors service)
 
-![UniFlow Logo](../uniflow-we/logo.png)
+Ancien backend NestJS + Prisma d'UniFlow. **Il n'est plus utilisé** : depuis la
+migration vers Appwrite, les trois clients (web, mobile, desktop) lisent et
+écrivent directement dans Appwrite Cloud, et la logique privilégiée vit dans
+les Functions Appwrite du dépôt `uniflow-we` (`functions/`).
 
-Le backend UniFlow est un service robuste basé sur **NestJS** conçu pour gérer les tâches de fond, les intégrations tierces et servir de passerelle utilitaire à l'infrastructure **Appwrite** de KERNEL FORGE.
+Le dépôt est conservé pour deux raisons :
 
-## 🏗️ Évolution de l'Architecture
-Dans la phase actuelle du projet, la majorité de la logique de données a été migrée vers **Appwrite** (Source de vérité unique). Le backend NestJS conserve les rôles critiques suivants :
-- **Appwrite Storage Bridge** : Gestion sécurisée des fichiers via l'API Key serveur.
-- **Sync & Audit** : Synchronisation entre les systèmes legacy et les nouvelles collections Appwrite.
-- **Visioconférence** : Gestion des jetons et de l'infrastructure LiveKit.
-- **IoT Sentinelle** : Réception et agrégation des logs provenant des puces Edge AI locales.
+1. **Son `.env` (non versionné) porte la clé serveur Appwrite** utilisée par
+   les scripts de `uniflow-we/scripts/` (provisionnement, seeds, tests). Le
+   fichier `.comptes-demo.local` (non versionné lui aussi) y garde les mots de
+   passe des comptes de démonstration générés par `seed-accounts.mjs`.
+2. Le code NestJS et les migrations Prisma documentent le modèle métier
+   d'origine (utilisateurs, structure académique, présence, visioconférence,
+   journaux d'audit).
 
-## 🛠️ Stack Technique
-- **Framework** : NestJS (Node.js).
-- **ORM** : Prisma (PostgreSQL pour les logs d'audit et la persistence auxiliaire).
-- **BaaS Client** : Appwrite Server SDK.
-- **Sécurité** : JWT, Chiffrement AES pour les secrets.
-- **Documentation** : Swagger/OpenAPI intégré.
+## Configuration attendue dans `.env`
 
-## 🚀 Fonctionnalités
-- **Auth Gateway** : Gestion des sessions hybrides et renouvellement de jetons.
-- **File Management** : Proxy sécurisé pour le téléversement vers Appwrite Storage.
-- **Attendance Roll** : Agrégation périodique des émargements pour rapports statistiques.
-- **Audit Logs** : Traçabilité complète des actions administratives critiques.
-
-## ⚙️ Configuration
-Un fichier `.env` complet est indispensable pour le fonctionnement :
 ```env
-UNIFLOW_DATA_SOURCE=appwrite
-APPWRITE_ENDPOINT=https://appwrite.kernelforge.codes/v1
-APPWRITE_PROJECT_ID=6a959096002a64d9d4e6
-APPWRITE_API_KEY=votre_cle_serveur_secret
-DATABASE_URL=postgresql://...
-JWT_SECRET=votre_secret_jwt
+APPWRITE_ENDPOINT=https://fra.cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=uniflow
+APPWRITE_DATABASE_ID=uniflow
+APPWRITE_API_KEY=<clé serveur, jamais versionnée>
 ```
 
-## 📦 Docker & Déploiement
-Le backend est containerisé pour un déploiement facile sur VPS :
-```bash
-docker-compose up -d
+Voir `.env.example`. Aucun identifiant ne doit être commité ; `.gitignore`
+exclut `.env` et `.comptes-demo.local`.
+
+## Contenu
+
+```
+uniflow-backend/
+├── src/            modules NestJS d'origine (auth, académique, présence, visio, audit, outil d'administration)
+├── prisma/         schéma et migrations PostgreSQL d'origine
+├── scripts/        check_db.js — inspection d'une base Prisma
+├── docs/           notes de demandes en attente, ancienne configuration Vercel
+├── Dockerfile, docker-compose*.yml, deploy.sh — déploiement VPS d'origine
+└── .github/workflows/ci.yml
 ```
 
----
-© 2026 **KERNEL FORGE** — L'épine dorsale de l'écosystème UniFlow.
+Rien ici ne doit être remis en service sans décision explicite : toute
+nouvelle logique serveur va dans une Function Appwrite de `uniflow-we`.

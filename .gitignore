@@ -24,3 +24,5 @@ coverage
 .windsurf/
 .cursor/
 skills-lock.json
+# Identifiants des comptes de démonstration (générés par uniflow-we/scripts/seed-accounts.mjs)
+.comptes-demo.local
