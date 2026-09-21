@@ -24,5 +24,8 @@ coverage
 .windsurf/
 .cursor/
 skills-lock.json
-# Identifiants des comptes de démonstration (générés par uniflow-we/scripts/seed-accounts.mjs)
+# Identifiants des comptes de démonstration (générés par uniflow-we/scripts/seed-accounts.mjs
+# et seed-classroom.mjs). Motif large : tout fichier de mots de passe généré ici reste local.
 .comptes-demo.local
+.comptes-classe.local
+.comptes-*.local
